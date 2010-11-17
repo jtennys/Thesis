@@ -993,7 +993,7 @@ void servoFinder(void)
 		}
 	}
 	
-	PRT1DR |= 0b11111111;
+//	PRT1DR |= 0b11111111;
 //	
 //	if(status_return_level == 1)
 //	{
