@@ -1,0 +1,789 @@
+<!--Project DB Ver 2.03 02/12/02-->
+<PSOC_PROJECT>
+	<!--We define a configuration as a customer designed architectural arrangement of our User Modules.-->
+	<CONFIGURATION ATTR="This is an attr">
+		<PLACED_USER_MODULE_LIST>
+		</PLACED_USER_MODULE_LIST>
+	</CONFIGURATION>
+	<APPLICATION>
+		<FILE_LIST>
+			<SOURCE_FILE_LIST>
+				<SOURCE_FILE NAME="main.c" TYPE="UserSourceModule" LANGUAGE="C"/>
+				<SOURCE_FILE NAME="flashsecurity.txt" TYPE="TextFile" LANGUAGE="" OVERLAY_NAME=""/>
+				<SOURCE_FILE NAME="rx8_2int.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="rx8_2.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="rx8_2plus.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="rx8_2.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="rx8_2.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="psocapi.h" TYPE="LibraryIncludeFile" LANGUAGE="C" OVERLAY_NAME="" FILEMODTIME="269879424" LIBTIME="1238732" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="psocapi.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269879424" LIBTIME="1238732" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="psocdynamic.h" TYPE="LibraryIncludeFile" LANGUAGE="C" OVERLAY_NAME="" FILEMODTIME="269879424" LIBTIME="1238732" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="memory.inc" TYPE="UserIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="tx_014int.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="my_response" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="tx_014.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="my_response" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="tx_014.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="my_response" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="tx_014plus.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="my_response" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="tx_014.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="my_response" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="tx_23int.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="my_response" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="tx_23.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="my_response" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="tx_23.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="my_response" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="tx_23plus.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="my_response" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="tx_23.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="my_response" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_1int.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response1" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_1.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response1" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_1plus.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response1" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_1.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response1" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_1.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response1" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_2int.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response2" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_2.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response2" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_2plus.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response2" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_2.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response2" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_2.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response2" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_3int.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response3" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_3.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response3" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_3plus.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response3" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_3.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response3" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_3.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response3" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_4int.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response4" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_4.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response4" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_4plus.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response4" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_4.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response4" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_4.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response4" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="wait_recvint.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="wait_recv.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="wait_recvplus.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="wait_recv.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="wait_recv.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_3int.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_3.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_3plus.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_3.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_3.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_4int.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_4.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_4plus.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_4.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_4.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="tx_01234_timeoutint.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="my_response" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="tx_01234_timeout.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="my_response" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="tx_01234_timeout.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="my_response" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="tx_01234_timeout.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="my_response" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_1_timeoutint.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response1" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_1_timeout.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response1" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_1_timeout.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response1" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_1_timeout.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response1" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_2_timeoutint.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response2" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_2_timeout.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response2" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_2_timeout.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response2" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_2_timeout.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response2" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_3_timeoutint.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response3" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_3_timeout.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response3" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_3_timeout.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response3" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_3_timeout.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response3" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_4_timeoutint.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response4" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_4_timeout.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response4" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_4_timeout.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="response4" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="child_4_timeout.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="response4" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_timeoutint.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_timeout.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_timeout.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_timeout.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_1int.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_1.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_1plus.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_1.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_1.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_2int.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_2.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_2plus.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_2.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="hello_2.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="hello" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="init_rxint.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="initial" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="init_rx.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="initial" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="init_rxplus.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="initial" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="init_rx.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="initial" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="init_rx.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="initial" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="init_timeoutint.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="initial" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="init_timeout.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="initial" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="init_timeout.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="initial" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="init_timeout.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="initial" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				<SOURCE_FILE NAME="psocconfigtbl.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="56295424" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="psocdynamic.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="56295424" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="psocdynamic.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="56295424" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="psocdynamicint.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="56295424" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="psocconfig.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="56295424" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="boot.asm" TYPE="UserSourceModule" LANGUAGE="ASM" OVERLAY_NAME="" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="globalparams.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="56295424" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="globalparams.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="56295424" USER_FILE="FALSE"/>
+			</SOURCE_FILE_LIST>
+			<LIB_FILE_LIST>
+				<LIB_FILE NAME="libPSoC.a" TYPE="UserLibrary">
+				</LIB_FILE>
+			</LIB_FILE_LIST>
+		</FILE_LIST>
+		<BUILD_SETTINGS>
+			<BUILD COMPILER="IMAGECRAFT" INCLUDE_PATH="C:\PROGRA~1\Cypress\Common\CYPRES~3\tools\include\CY8C29~1"/>
+		</BUILD_SETTINGS>
+		<MISC>
+			<WINDOWPOSITIONS>
+				<WINDOWPOSITION x="0" y="0" cx="100" cy="1000">
+				</WINDOWPOSITION>
+			</WINDOWPOSITIONS>
+			<OPEN_WINDOWS>
+				<WINDOW NAME="xxx">
+				</WINDOW>
+			</OPEN_WINDOWS>
+		</MISC>
+	</APPLICATION>
+	<PROJECT_SETTINGS>
+		<SECTION SECTION_NAME="Linker Settings" VENDOR="HI-TECH" LIB_PATH="" LIBS="" OPTIONS=""/>
+		<SECTION SECTION_NAME="Linker Settings" VENDOR="IMAGECRAFT"/>
+		<SECTION SECTION_NAME="Compiler Settings" VENDOR="HI-TECH" MACRO_DEFINES="" MACRO_UNDEFINES="" OPTIONS="" ATTR_GLOBAL_OPT="1" ASSEMBLER_OPT="1" OPTIMIZATIONS="9" WARNING_LEVEL="0"/>
+		<SECTION SECTION_NAME="Compiler Settings" VENDOR="IMAGECRAFT"/>
+		<SECTION SECTION_NAME="Programmer Settings" RESET_DEVPROGRAMMER="1"/>
+		<SECTION SECTION_NAME="Device Editor Settings" CONFIGINIT_TYPE_LOOP="1" ENABLE_INTERRUPT_GEN_CTRL="0" ENABLE_CONFIGNAME_PREPEND="0" GENERATE_APP="1" UPDATE_ENABLED="1" LOCK_EXPRESS_RESOURCES="1" GENPROJECT_DISABLED="0"/>
+		<SECTION SECTION_NAME="Debugger Settings" RESET_ICEPOWERPOD_ENABLE="0" PODSUPPLY_VOLTAGE="0" ICE_PORT="" PODCLOCK_FREQUENCY="1"/>
+	</PROJECT_SETTINGS>
+</PSOC_PROJECT>
+<!--Files Types:
+	MainDirectory,	
+	UserSourceModule, 
+	UserIncludeFile
+	UserLibrary,	
+	LibrarySource,	
+	IntermediateBuild,
+	IntermediateError,	
+	IntermediateDebug
+-->
