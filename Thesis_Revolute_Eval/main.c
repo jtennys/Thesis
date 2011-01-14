@@ -22,6 +22,7 @@
 #pragma interrupt_handler CHILD_4_TIMEOUT_ISR
 #pragma interrupt_handler HELLO_TIMEOUT_ISR
 #pragma interrupt_handler INIT_TIMEOUT_ISR
+#pragma interrupt_handler SERVO_TX_TIMEOUT_ISR
 
 // These defines are used as parameters of the configToggle function.
 #define		WAIT						(1)
@@ -32,6 +33,7 @@
 #define 	RESPONSE_4					(6)
 #define		HELLO_MODE					(7)
 #define		INITIALIZE					(8)
+#define		SERVO_COMM					(9)
 
 // These defines are used as comparisons to find what port the next module connected to.
 #define		PORT_A						('A')
@@ -40,8 +42,8 @@
 #define		PORT_D						('D')
 
 // These defines are used as transmission indicators.
-#define		START_TRANSMIT				(248)	// Indicates the beginning of a transmission.
-#define		END_TRANSMIT				(85)	// Indicates the end of a transmission.
+#define		START_TRANSMIT				(252)	// Indicates the beginning of a transmission.
+#define		END_TRANSMIT				(253)	// Indicates the end of a transmission.
 #define		HELLO_BYTE					(200)	// Indicates master is ready to talk.
 #define		ID_ASSIGNMENT				(201)	// Indicates an ID assignment from the master.
 #define		ID_ASSIGN_OK				(202)	// Indicates an ID assignment is acknowledged.
@@ -78,7 +80,7 @@
 #define		STATUS_RET_ALL				(2)		// Respond to every command.
 
 // This is the number of attempts we make to contact the servo before writing to its EEPROM.
-#define		SERVO_COMM_ATTEMPTS			(10)
+#define		SERVO_COMM_ATTEMPTS			(3)
 // This is the status return level, which is set to one of the possible status return values above.
 #define		STATUS_RET_LEVEL			(STATUS_RET_READ)
 
@@ -110,6 +112,9 @@ int childResponse(void);
 void servoFinder(void);
 // This function carries out the passed servo instruction.
 void servoInstruction(char id, char length, char instruction, char address, char value);
+// This function does a simple for loop to stall and make doubly sure that the transmission finished.
+// It is meant to be used as a definite amount of wait time after the transmission complete flag is set.
+void xmitWait(void);
 
 char CHILD;		// Keeps track of where the child is connected.
 char ID;		// Stores the ID that the master gives this module.
@@ -129,22 +134,19 @@ char SERVO_ID;				// Stores the ID of the servo connected inside of this module.
 
 void main()
 {	
-	CHILD = 0;					// There is no child yet.
-	CONFIGURED = 0;				// This module is not configured yet.
-	TIMEOUT = 0;				// Set the timeout flag low to start.
-	COMMAND_PARAM = 0;					// There is no parameter yet.
-	STATE = 0;					// There is no state yet.
-	SERVO_ID = 255;				// Start with a servo ID of 255 (out of valid range).
-	ID = DEFAULT_ID;			// Set the ID of this module to the default to start with.
+	CHILD = 0;				// There is no child yet.
+	CONFIGURED = 0;			// This module is not configured yet.
+	TIMEOUT = 0;			// Set the timeout flag low to start.
+	COMMAND_PARAM = 0;		// There is no parameter yet.
+	STATE = 0;				// There is no state yet.
+	ID = DEFAULT_ID;		// Set the ID of this module to the default to start with.
 
-	M8C_EnableGInt;				// Turn on global interrupts for the transmission timeout timer.
+	M8C_EnableGInt;			// Turn on global interrupts for the transmission timeout timer.
 	
 	M8C_EnableIntMask(INT_MSK0,INT_MSK0_GPIO); // Activate GPIO ISR
 	
 	// Block and try to talk to your servo and don't do anything until you do.
 	servoFinder();
-	
-	// Switch to normal operation.
 	//configToggle(WAIT);
 	
 	// Loop and wait for commands.
@@ -174,6 +176,9 @@ void sayHello(void)
 	
 	// Wait for the transmission to finish.
 	while(!(TX_014_bReadTxStatus() & TX_014_TX_COMPLETE));
+	
+	// Make completely sure we're done.
+	xmitWait();
 
 	configToggle(WAIT);				// Switch back to wait mode.
 }
@@ -228,7 +233,7 @@ void configToggle(int mode)
 		while(!TIMEOUT)
 		{
 			// Do nothing while we wait for one timeout period.
-			// This is to allow everyone to get in the right configuration.
+			// This is to allow everyone to get in the right configuration before talking.
 		}
 		
 		TX_01234_TIMEOUT_Stop();		// Stop the timer.
@@ -356,40 +361,38 @@ void configToggle(int mode)
 		// Set the current state.
 		STATE = INITIALIZE;
 	}
+	else if(mode == SERVO_COMM)
+	{
+		// Load the configuration for servo communication.
+		LoadConfig_servo_transmit();
+		
+		// Clear the timeout flag.
+		TIMEOUT = 0;
+		
+		// Start the transmitter.
+		SERVO_TX_Start(SERVO_TX_PARITY_NONE);
+		
+		SERVO_TX_TIMEOUT_EnableInt();	// Make sure interrupts are enabled.
+		SERVO_TX_TIMEOUT_Start();		// Start the timer.
+		
+		while(!TIMEOUT)
+		{
+			// Do nothing while we wait for one timeout period.
+			// This is to allow everyone to get in the right configuration before talking.
+		}
+		
+		SERVO_TX_TIMEOUT_Stop();		// Stop the timer.
+		TIMEOUT = 0;					// Reset the timeout flag.
+	
+		// Set the current state.
+		STATE = SERVO_COMM;
+	}
 	
 	// If this module is configured, talk on all pins for potential children.
 	if(CONFIGURED)
 	{
 		PRT0GS |= 0b00011111;	// Connect all pins to the global bus.
 		PRT2DR &= 0b11111110;	// Turn on the LED (active low).
-		
-		// Print out the servo ID.
-		PRT1DR |= 0b11111111;
-		
-		if(SERVO_ID == 1)
-		{
-			PRT1DR &= 0b11110111;
-		}
-		else if(SERVO_ID == 2)
-		{
-			PRT1DR &= 0b11011111;
-		}
-		else if(SERVO_ID == 3)
-		{
-			PRT1DR &= 0b11010111;
-		}
-		else if(SERVO_ID == 4)
-		{
-			PRT1DR &= 0b01111111;
-		}
-		else if(SERVO_ID == 5)
-		{
-			PRT1DR &= 0b01110111;
-		}
-		else if(SERVO_ID == 6)
-		{
-			PRT1DR &= 0b01011111;
-		}
 	}
 	else
 	{
@@ -403,17 +406,24 @@ void configToggle(int mode)
 // blocks and waits for the transmission to finish.
 int commandReady(void)
 {
+	char tempByte = 0;	// This byte is used to store each byte for comparison as it comes in.
+	
 	// This conditional checks which configuration is loaded and uses the proper devices to
 	// read a transmission and store the important information from that transmission.
 	if(STATE == WAIT)
 	{	
-		if(WAIT_RECV_cReadChar() == START_TRANSMIT)
+		tempByte = WAIT_RECV_cGetChar();
+		
+		if(tempByte == START_TRANSMIT)
 		{
-			// If we definitely have a transmission starting, grab it from the rx buffer
-			// and store it in the proper variables for actions to be taken later.
-			if(WAIT_RECV_cGetChar() == START_TRANSMIT)
+			while(tempByte == START_TRANSMIT)
 			{
-				COMMAND_SOURCE = WAIT_RECV_cGetChar();
+				tempByte = WAIT_RECV_cGetChar();
+			}
+			
+			if(tempByte == MASTER_ID)
+			{
+				COMMAND_SOURCE = tempByte;
 				COMMAND_DESTINATION = WAIT_RECV_cGetChar();
 				COMMAND_TYPE = WAIT_RECV_cGetChar();
 				COMMAND_PARAM = WAIT_RECV_cGetChar();
@@ -421,6 +431,26 @@ int commandReady(void)
 				return 1;
 			}
 		}
+		else if(tempByte == SERVO_START)
+		{
+			// This is where we would read the command for the servo and switch modes
+			// to let the response through if necessary.
+		}
+		
+//		if(WAIT_RECV_cReadChar() == START_TRANSMIT)
+//		{
+//			// If we definitely have a transmission starting, grab it from the rx buffer
+//			// and store it in the proper variables for actions to be taken later.
+//			if(WAIT_RECV_cGetChar() == START_TRANSMIT)
+//			{
+//				COMMAND_SOURCE = WAIT_RECV_cGetChar();
+//				COMMAND_DESTINATION = WAIT_RECV_cGetChar();
+//				COMMAND_TYPE = WAIT_RECV_cGetChar();
+//				COMMAND_PARAM = WAIT_RECV_cGetChar();
+//				
+//				return 1;
+//			}
+//		}
 	}
 	else if(STATE == HELLO_MODE)
 	{
@@ -557,52 +587,52 @@ void takeAction(void)
 				// This module is now configured.
 				CONFIGURED = 1;
 				
-				// Let the master node know that you got the ID assignment.
-				assignedID();
-				
 				// If the servo ID doesn't match what we want, change it to match.
 				if(ID != SERVO_ID)
 				{
-					// This is our index variable for communication attempt timeouts.
-					int i;
-					
-					while(ID != SERVO_ID)
-					{	
+//					// This is our index variable for communication attempt timeouts.
+//					int i;
+//					
+//					while(ID != SERVO_ID)
+//					{	
 						// Send a request to change the servo ID to match the controller ID.
 						servoInstruction(SERVO_ID, WRITE_LENGTH, WRITE_SERVO, ID_ADDRESS, ID);
 					
-						// Try to read the servo's ID several times.
-						for(i = 0; i < SERVO_COMM_ATTEMPTS; i++)
-						{
-							// Send a request for the servo ID, which is presumably now equal to ID.
-							servoInstruction(BROADCAST, PING_LENGTH, PING_SERVO, 0, 0);
-							
-							// Wait for either a timeout or an indication that we want to exit the loop.
-							while(!TIMEOUT)
-							{
-								// If we have a command to interpret, read it.
-								if(commandReady())
-								{
-									if(!COMMAND_ERROR)
-									{
-										// If we have a valid servo ID, exit the loop.
-										if(COMMAND_SOURCE == ID)
-										{
-											// Set the timeout flag to exit the while loop.
-											TIMEOUT = 1;
-											// Set i such that the for loop is exited.
-											i = SERVO_COMM_ATTEMPTS;
-											// Store the ID value.
-											SERVO_ID = ID;
-											// Toggle back to normal wait mode.
-											configToggle(WAIT);
-										}
-									}
-								}
-							}
-						}
-					}
+//						// Try to read the servo's ID several times.
+//						for(i = 0; i < SERVO_COMM_ATTEMPTS; i++)
+//						{
+//							// Send a request for the servo ID, which is presumably now equal to ID.
+//							servoInstruction(BROADCAST, PING_LENGTH, PING_SERVO, 0, 0);
+//							
+//							// Wait for either a timeout or an indication that we want to exit the loop.
+//							while(!TIMEOUT)
+//							{
+//								// If we have a command to interpret, read it.
+//								if(commandReady())
+//								{
+//									if(!COMMAND_ERROR)
+//									{
+//										// If we have a valid servo ID, exit the loop.
+//										if(COMMAND_SOURCE == ID)
+//										{
+//											// Set the timeout flag to exit the while loop.
+//											TIMEOUT = 1;
+//											// Set i such that the for loop is exited.
+//											i = SERVO_COMM_ATTEMPTS;
+//											// Store the ID value.
+//											SERVO_ID = ID;
+//											// Toggle back to normal wait mode.
+//											configToggle(WAIT);
+//										}
+//									}
+//								}
+//							}
+//						}
+//					}	
 				}
+				
+				// Let the master node know that you got the ID assignment.
+				assignedID();
 			}
 		}
 		else if(COMMAND_DESTINATION > ID)
@@ -667,6 +697,9 @@ void configCleared(void)
 	while(!(TX_014_bReadTxStatus() & TX_014_TX_COMPLETE));
 	while(!(TX_23_bReadTxStatus() & TX_23_TX_COMPLETE));
 	
+	// Make completely sure we're done.
+	xmitWait();
+	
 	configToggle(WAIT);				// Switch back to wait for a master response.
 }
 
@@ -695,6 +728,9 @@ void pingResponse(void)
 	while(!(TX_014_bReadTxStatus() & TX_014_TX_COMPLETE));
 	while(!(TX_23_bReadTxStatus() & TX_23_TX_COMPLETE));
 	
+	// Make completely sure we're done.
+	xmitWait();
+	
 	configToggle(WAIT);				// Switch back to wait for a master response.
 }
 
@@ -710,6 +746,7 @@ void unloadAllConfigs(void)
 	UnloadConfig_response3();
 	UnloadConfig_response4();
 	UnloadConfig_initial();
+	UnloadConfig_servo_transmit();
 }
 
 // This function unloads the configuration corresponding to the config number passed to it.
@@ -748,6 +785,10 @@ void unloadConfig(int config_num)
 	{
 		UnloadConfig_initial();
 	}
+	else if(config_num == SERVO_COMM)
+	{
+		UnloadConfig_servo_transmit();
+	}
 }
 
 // This function responds that an ID has been assigned to it.
@@ -774,6 +815,9 @@ void assignedID(void)
 	// Wait for the transmission to finish.
 	while(!(TX_014_bReadTxStatus() & TX_014_TX_COMPLETE));
 	while(!(TX_23_bReadTxStatus() & TX_23_TX_COMPLETE));
+	
+	// Make completely sure we're done.
+	xmitWait();
 	
 	configToggle(WAIT);				// Switch back to wait for a master response.
 }
@@ -859,9 +903,9 @@ int childResponse(void)
 
 // This function is used to find the servo that is directly connected to this module's controller.
 // After the servo ID is found, the status return level is changed so that packets are only
-// returned for the desired status return level.
+// returned for the desired status return level defined at the top of this file.
 void servoFinder(void)
-{	
+{				
 	// Index variable for incrementing and checking against the maximum servo comm attempts.
 	int i = 0;
 	
@@ -870,6 +914,9 @@ void servoFinder(void)
 	
 	// Create a status return level variable and set it to an out of range value initially.
 	char status_return_level = 3;
+	
+	// Start with a servo ID of 255 (out of valid range).
+	SERVO_ID = SERVO_START;
 	
 	// Sit here and wait until we get a valid servo ID.
 	while(SERVO_ID == SERVO_START)
@@ -881,14 +928,14 @@ void servoFinder(void)
 			
 			// Wait for either a timeout or a valid servo ID.
 			while(!TIMEOUT)
-			{
+			{	
 				if(commandReady())
 				{
 					if(!COMMAND_ERROR)
 					{
 						// If we read a source ID within the range, exit the loop.
 						if((COMMAND_SOURCE >= SERVO_ID_MIN) && (COMMAND_SOURCE <= SERVO_ID_MAX))
-						{
+						{	
 							// Exit this while loop by setting the timeout flag.
 							TIMEOUT = 1;
 							// Set the servo ID variable to where the ping came from.
@@ -914,39 +961,12 @@ void servoFinder(void)
 			
 			// Send out a broadcast reset so that we know that the response time interval
 			// is large enough (default delay time for a servo is 500 microseconds).
-			//servoInstruction(BROADCAST, RESET_LENGTH, RESET_SERVO, 0, 0);
+			servoInstruction(BROADCAST, RESET_LENGTH, RESET_SERVO, 0, 0);
 		}
 	}
 	
-//	// Print out the servo ID.
-//	PRT1DR |= 0b11111111;
-//	
-//	if(SERVO_ID == 1)
-//	{
-//		PRT1DR &= 0b11110111;
-//	}
-//	else if(SERVO_ID == 2)
-//	{
-//		PRT1DR &= 0b11011111;
-//	}
-//	else if(SERVO_ID == 3)
-//	{
-//		PRT1DR &= 0b11010111;
-//	}
-//	else if(SERVO_ID == 4)
-//	{
-//		PRT1DR &= 0b01111111;
-//	}
-//	else if(SERVO_ID == 251)
-//	{
-//		PRT1DR &= 0b01110111;
-//	}
-//	else if(SERVO_ID == 6)
-//	{
-//		PRT1DR &= 0b01011111;
-//	}
-//	
-//	while(1) { }
+	// Reset flash write flag.
+	flashWrite = 0;
 	
 	// Check to see if the status return level is equal to the level previously defined.
 	while(status_return_level != STATUS_RET_LEVEL)
@@ -976,7 +996,7 @@ void servoFinder(void)
 							i = SERVO_COMM_ATTEMPTS;
 						}
 						else
-						{
+						{	
 							// Set the timeout flag to exit the loop.
 							TIMEOUT = 1;
 						}
@@ -986,25 +1006,35 @@ void servoFinder(void)
 		}
 	
 		// If we didn't get a response and haven't written to the flash of the servo.
-		if(status_return_level != STATUS_RET_LEVEL)
-		{
+		if((status_return_level != STATUS_RET_LEVEL) && (!flashWrite))
+		{	
+			flashWrite = 1;
+			
 			// Try to force the return status to what we want.
-			//servoInstruction(SERVO_ID, WRITE_LENGTH, WRITE_SERVO, STATUS_RET_ADDRESS, STATUS_RET_LEVEL);
+			servoInstruction(SERVO_ID, WRITE_LENGTH, WRITE_SERVO, STATUS_RET_ADDRESS, STATUS_RET_LEVEL);
 		}
 	}
+
+// In between these comments is a function!
+
+	configToggle(INITIALIZE);	// Switch back to initialize mode to do this timeout routine.
 	
-//	PRT1DR |= 0b11111111;
-//	
-//	if(status_return_level == 1)
-//	{
-//		PRT1DR &= 0b11110111;
-//	}
-//	else if(status_return_level == 2)
-//	{
-//		PRT1DR &= 0b11011111;
-//	}
-//	
-//	while(1) { }
+	// For 250 cycles, or half a second, let the other controllers find their servos.
+	for(i = 0; i < 250; i++)
+	{
+		while(!TIMEOUT)
+		{
+			// Do nothing while we wait for one timeout period.
+			// This is to allow everyone to get in the right configuration before talking.
+		}
+		
+		TIMEOUT = 0;			// Reset the timeout flag.
+	}
+	
+	INIT_TIMEOUT_Stop();		// Stop the timer.
+	TIMEOUT = 0;				// Reset the timeout flag.
+
+// In between these comments is a function!
 
 	// Switch to wait for the master node to speak to you.
 	configToggle(WAIT);
@@ -1014,46 +1044,54 @@ void servoFinder(void)
 // With these parameters, the function sends a packet to the communication bus.
 void servoInstruction(char id, char length, char instruction, char address, char value)
 {
-	int total;
 	char checksum;
 	
 	// Toggle into transmit mode.
-	configToggle(MY_RESPONSE);
-	
-	// Disconnect your children from the global bus, just in case.
-	PRT0GS &= 0b11100001;
+	configToggle(SERVO_COMM);
 	
 	// Calculate the checksum value for our servo communication.
-	total = 255-((id + length + instruction + address + value)%256);
-	checksum = total;
+	checksum = 255-((id + length + instruction + address + value)%256);
 	
 	// Talk to the servo.
 	if(instruction == PING_SERVO)
 	{
-		TX_014_PutChar(SERVO_START);	// Start byte one
-		TX_014_PutChar(SERVO_START);	// Start byte two
-		TX_014_PutChar(id);				// Servo ID
-		TX_014_PutChar(length);			// The instruction length.
-		TX_014_PutChar(instruction);	// The instruction to carry out.
-		TX_014_PutChar(checksum);		// This is the checksum.
+		SERVO_TX_PutChar(SERVO_START);	// Start byte one
+		SERVO_TX_PutChar(SERVO_START);	// Start byte two
+		SERVO_TX_PutChar(id);				// Servo ID
+		SERVO_TX_PutChar(length);			// The instruction length.
+		SERVO_TX_PutChar(instruction);	// The instruction to carry out.
+		SERVO_TX_PutChar(checksum);		// This is the checksum.
 	}
 	else
 	{
-		TX_014_PutChar(SERVO_START);	// Start byte one
-		TX_014_PutChar(SERVO_START);	// Start byte two
-		TX_014_PutChar(id);				// Servo ID
-		TX_014_PutChar(length);			// The instruction length.
-		TX_014_PutChar(instruction);	// The instruction to carry out.
-		TX_014_PutChar(address);		// The address to read/write from/to.
-		TX_014_PutChar(value);			// The value to write or number of bytes to read.
-		TX_014_PutChar(checksum);		// This is the checksum.
+		SERVO_TX_PutChar(SERVO_START);	// Start byte one
+		SERVO_TX_PutChar(SERVO_START);	// Start byte two
+		SERVO_TX_PutChar(id);				// Servo ID
+		SERVO_TX_PutChar(length);			// The instruction length.
+		SERVO_TX_PutChar(instruction);	// The instruction to carry out.
+		SERVO_TX_PutChar(address);		// The address to read/write from/to.
+		SERVO_TX_PutChar(value);			// The value to write or number of bytes to read.
+		SERVO_TX_PutChar(checksum);		// This is the checksum.
 	}
 	
 	// Wait for the transmission to finish.
-	while(!(TX_014_bReadTxStatus() & TX_014_TX_COMPLETE));
+	while(!(SERVO_TX_bReadTxStatus() & SERVO_TX_TX_COMPLETE));
+	
+	// Make completely sure we're done.
+	xmitWait();
 	
 	// Switch back to wait for a servo response.
 	configToggle(INITIALIZE);
+}
+
+void xmitWait(void)
+{
+	int i;
+	
+	for(i = 0; i < 25; i++)
+	{
+		// Does nothing and wastes approximately 50 microseconds.
+	}
 }
 
 // This timeout ISR is for waiting before a transmission is made from this module.
@@ -1102,4 +1140,10 @@ void INIT_TIMEOUT_ISR(void)
 {
 	TIMEOUT = 1;	// Set the timeout flag.
 	M8C_ClearIntFlag(INT_CLR0,INIT_TIMEOUT_INT_MASK);
+}
+
+void SERVO_TX_TIMEOUT_ISR(void)
+{
+	TIMEOUT = 1;	// Set the timeout flag.
+	M8C_ClearIntFlag(INT_CLR0,SERVO_TX_TIMEOUT_INT_MASK);
 }
