@@ -1,5 +1,5 @@
 // Author: Jason Tennyson
-// Date: 11-8-10
+// Date: 1-18-11
 // File: main.c
 //
 // This is the design for the revolute modules for Jason Tennyson's Thesis.
@@ -8,12 +8,13 @@
 //
 // Packet Structure
 // ----------------
-// START BYTE/START BYTE/SOURCE ID BYTE/DESTINATION ID BYTE/COMMAND TYPE/PARAM 1/PARAM 2/.../END TRANSMIT
+// START BYTE/START BYTE/SOURCE ID BYTE/DESTINATION ID BYTE/COMMAND TYPE/PARAM 1/.../PARAM N/END TRANSMIT
 
-#include <m8c.h>        	// part specific constants and macros
-#include "PSoCAPI.h"    	// PSoC API definitions for all User Modules
-#include "psocdynamic.h"
+#include <m8c.h>        	// Part-specific constants and macros.
+#include "PSoCAPI.h"    	// PSoC API definitions for all User Modules.
+#include "psocdynamic.h"	// Required for dynamically swapping configurations at run time.
 
+// These are declarations of all of the timer interrupts that are used for all configurations.
 #pragma interrupt_handler WAIT_NC_TIMEOUT_ISR
 #pragma interrupt_handler TX_01234_TIMEOUT_ISR
 #pragma interrupt_handler CHILD_1_TIMEOUT_ISR
@@ -24,7 +25,8 @@
 #pragma interrupt_handler INIT_TIMEOUT_ISR
 #pragma interrupt_handler SERVO_TX_TIMEOUT_ISR
 
-// These defines are used as parameters of the configToggle function.
+// These defines are used as parameters of the configToggle function.  Passing one of
+// these identifiers to configToggle will put the chip in that device configuration.
 #define		WAIT						(1)
 #define		MY_RESPONSE					(2)
 #define 	RESPONSE_1					(3)
@@ -41,27 +43,29 @@
 #define		PORT_C						('C')
 #define		PORT_D						('D')
 
-// These defines are used as transmission indicators.
+// These defines are used as transmission indicators for transmissions between PSoC controllers.
 #define		START_TRANSMIT				(252)	// Indicates the beginning of a transmission.
 #define		END_TRANSMIT				(253)	// Indicates the end of a transmission.
 #define		HELLO_BYTE					(200)	// Indicates master is ready to talk.
 #define		ID_ASSIGNMENT				(201)	// Indicates an ID assignment from the master.
-#define		ID_ASSIGN_OK				(202)	// Indicates an ID assignment is acknowledged.
-#define		PING						(203)	// Indicates that someone is pinging someone else.
+#define		ID_ASSIGN_OK				(202)	// Indicates an ID assignment is complete.
+#define		PING						(203)	// Indicates a ping message to or from the master.
 #define		CLEAR_CONFIG				(204)	// Indicates that the master is asking for a config clear.
 #define		CONFIG_CLEARED				(205)	// Indicates that a module has cleared its own config.
 #define		MASTER_ID					(0)		// The master node's ID.
-#define		BROADCAST					(254)	// The broadcast ID for talking to all nodes.
-#define		DEFAULT_ID					(251)	// The ID that all modules start with
+#define		DEFAULT_ID					(251)	// The ID that all modules start with.
+#define		BROADCAST					(254)	// The broadcast ID for all controllers and servos.
 
 // SERVO DEFINES
 // These numbers can all be found in the AX-12+ datasheet.
 // These defines cover the range of IDs these servos are capable of.
-#define		SERVO_ID_MIN				(0)
-#define		SERVO_ID_MAX				(253)
+#define		SERVO_ID_MIN				(0)		// This is the lowest servo ID possible.
+#define		SERVO_ID_MAX				(253)	// This is the highest servo ID possible.
 // These defines are servo transmission indicators.
 #define		SERVO_START					(255)	// This is the start byte for a servo transmission.
-// These defines are used to fill in the length parameter for a given command type.
+// These defines are used to fill in the length parameter for a given command type.  These are the only
+// lengths used by this controller for servo configuration purposes.  It is worth noting that any type
+// and length of command can be issued from the master after configuration is complete.
 #define		READ_LENGTH					(4)		// This is the length value for all reads.
 #define		WRITE_LENGTH				(4)		// This is the length value for all writes.
 #define		PING_LENGTH					(2)		// This is the length value for a ping.
@@ -74,7 +78,7 @@
 #define		READ_SERVO					(2)		// This is the instruction number for a read.
 #define		WRITE_SERVO					(3)		// This is the instruction number for a write.
 #define		RESET_SERVO					(6)		// This is the instruction to reset the servo EEPROM.
-// These defines are used to fill in the blanks on common write values.
+// These defines cover all of the status return level possibilities.
 #define		STATUS_RET_NEVER			(0)		// Only respond to ping commands.
 #define		STATUS_RET_READ				(1)		// Only respond to read data commands (recommended).
 #define		STATUS_RET_ALL				(2)		// Respond to every command.
@@ -86,17 +90,18 @@
 // This is because we do an EEPROM write after the first unsuccessful loop of SERVO_COMM_ATTEMPTS.
 // If we don't then do at least one more loop, the EEPROM write was done for no reason.
 #define		SERVO_COMM_LOOPS			(5)
+
 // This is the status return level, which is set to one of the possible status return values above.
+// We want the status return level to be return on read commands only so that we don't have garbage
+// return packets flying around every time we tell the servo to move.
 #define		STATUS_RET_LEVEL			(STATUS_RET_READ)
 
 // This function receives a mode identifier as a parameter and toggles the system configuration.
 void configToggle(int mode);
-// This function checks the current mode and unloads the configuration for that mode.
+// This function unloads all configurations.  This should only be needed at startup.
 void unloadAllConfigs(void);
 // This function unloads the configuration corresponding to the number passed to it.
 void unloadConfig(int config_num);
-// This function blocks and waits for a formal hello from the master node.
-void waitForHello(void);
 // This function is a response to the master sending out a hello message.
 void sayHello(void);
 // This function looks for commands and returns 1 if a command has been read, 0 if not.
@@ -111,9 +116,9 @@ void assignedID(void);
 void configCleared(void);
 // This function listens for children and registers the port that they talk to.
 int childListen(void);
-// This function waits for a child response.
+// This function waits for a known child's response to a command to that child from the master.
 int childResponse(void);
-// This function does everything it can to find a servo.
+// This function does everything it can to find the servo attached to this controller.
 void servoFinder(void);
 // This function carries out the passed servo instruction.
 void servoInstruction(char id, char length, char instruction, char address, char value);
@@ -135,24 +140,24 @@ char COMMAND_PARAM;			// Stores a parameter that accompanies the command (if any
 char COMMAND_LENGTH;		// Stores the length parameter of a servo command.
 char COMMAND_ERROR;			// Stores the error code of a servo command.
 
-char SERVO_ID;				// Stores the ID of the servo connected inside of this module.
+char SERVO_ID;				// Stores the ID of the servo inside of this module.
 
 void main()
 {	
+	// Initial value assignment for variables of importance.
 	CHILD = 0;				// There is no child yet.
 	CONFIGURED = 0;			// This module is not configured yet.
 	TIMEOUT = 0;			// Set the timeout flag low to start.
 	COMMAND_PARAM = 0;		// There is no parameter yet.
 	STATE = 0;				// There is no state yet.
-	ID = DEFAULT_ID;		// Set the ID of this module to the default to start with.
+	ID = DEFAULT_ID;		// Set the ID of this controller to the default to start with.
 
 	M8C_EnableGInt;			// Turn on global interrupts for the transmission timeout timer.
 	
 	M8C_EnableIntMask(INT_MSK0,INT_MSK0_GPIO); // Activate GPIO ISR
 	
-	// Block and try to talk to your servo and don't do anything until you do.
+	// Find the servo that is inside of this module.
 	servoFinder();
-	//configToggle(WAIT);
 	
 	// Loop and wait for commands.
 	while(1)
@@ -165,6 +170,7 @@ void main()
 	}
 }
 
+// This function transmits a response to a hello command from the master.
 void sayHello(void)
 {	
 	configToggle(MY_RESPONSE);		// Switch to response mode.
@@ -172,10 +178,10 @@ void sayHello(void)
 	// Transmit a hello response to the master node.
 	TX_014_PutChar(START_TRANSMIT);	// Start byte one
 	TX_014_PutChar(START_TRANSMIT);	// Start byte two
-	TX_014_PutChar(ID);				// My ID
-	TX_014_PutChar(MASTER_ID);		// Destination ID (master)
-	TX_014_PutChar(HELLO_BYTE);		// This is a hello command
-	TX_014_PutChar(CHILD);			// Sends child port number, default 0.
+	TX_014_PutChar(ID);				// My ID (source)
+	TX_014_PutChar(MASTER_ID);		// Master ID (destination)
+	TX_014_PutChar(HELLO_BYTE);		// This is a hello command.
+	TX_014_PutChar(CHILD);			// Sends child port value, default 0.
 	TX_014_PutChar(END_TRANSMIT);	// This is the end of this transmission.
 	TX_014_PutChar(END_TRANSMIT);	// This is the end of this transmission.
 	
@@ -194,8 +200,8 @@ void configToggle(int mode)
 {	
 	// Set the pins high and disconnect from the global bus.
 	// This keeps false start bits from happening while we swap configs.
-	PRT0DR |= 0b00011111;
-	PRT0GS &= 0b11100000;
+	PRT0DR |= 0b00011111;	// Set pins P00 through P04 high.
+	PRT0GS &= 0b11100000;	// Disconnect pins P00 through P04 from the global bus.
 	
 	// Unload the configuration of the current state.
 	// If there is no state, blindly wipe all configurations.
@@ -208,9 +214,12 @@ void configToggle(int mode)
 		unloadAllConfigs();
 	}
 	
+	// Go through the list of possible modes until we find the one that was passed in to us.
+	// Then, load that configuration and initialize whatever needs to be initialized.
 	if(mode == WAIT)
 	{
-		// Load the wait receiver configuration.
+		// Load the wait receiver configuration.  This is the receiver configuration used after
+		// initialization is complete.  It listens and forwards everything it hears.
 		LoadConfig_waiting();
 		
 		// Start the receivers.
@@ -222,27 +231,25 @@ void configToggle(int mode)
 	}
 	else if(mode == MY_RESPONSE)
 	{
-		// Load the transmitter configuration.
+		// Load the transmitter configuration.  This is for transmitting messages on all ports.
 		LoadConfig_my_response();
 		
 		// Clear the timeout flag.
 		TIMEOUT = 0;
 		
 		// Start the transmitters.
-		TX_014_Start(TX_014_PARITY_NONE);
-		TX_23_Start(TX_014_PARITY_NONE);
+		TX_014_Start(TX_014_PARITY_NONE);	// Transmits on P00, P01, and P04.
+		TX_23_Start(TX_23_PARITY_NONE);		// Transmits on P02 and P03.
 		
-		TX_01234_TIMEOUT_EnableInt();	// Make sure interrupts are enabled.
-		TX_01234_TIMEOUT_Start();		// Start the timer.
+		TX_01234_TIMEOUT_EnableInt();		// Make sure interrupts are enabled.
+		TX_01234_TIMEOUT_Start();			// Start the timer.
 		
-		while(!TIMEOUT)
-		{
-			// Do nothing while we wait for one timeout period.
-			// This is to allow everyone to get in the right configuration before talking.
-		}
+		// Do nothing while we wait for one timeout period (1 ms).
+		// This is to allow everyone to get in the right configuration before talking.
+		while(!TIMEOUT) { }
 		
-		TX_01234_TIMEOUT_Stop();		// Stop the timer.
-		TIMEOUT = 0;					// Reset the timeout flag.
+		TX_01234_TIMEOUT_Stop();			// Stop the timer.
+		TIMEOUT = 0;						// Reset the timeout flag.
 	
 		// Set the current state.
 		STATE = MY_RESPONSE;
@@ -258,8 +265,8 @@ void configToggle(int mode)
 		// Start listening for a response through child port 1.
 		CHILD_1_Start(CHILD_1_PARITY_NONE);
 		
-		CHILD_1_TIMEOUT_EnableInt();	// Make sure interrupts are enabled.
-		CHILD_1_TIMEOUT_Start();		// Start the timer.
+		CHILD_1_TIMEOUT_EnableInt();		// Make sure interrupts are enabled.
+		CHILD_1_TIMEOUT_Start();			// Start the timer.
 		
 		// Set the current state.
 		STATE = RESPONSE_1;
@@ -275,8 +282,8 @@ void configToggle(int mode)
 		// Start listening for a response through child port 2.
 		CHILD_2_Start(CHILD_2_PARITY_NONE);
 		
-		CHILD_2_TIMEOUT_EnableInt();	// Make sure interrupts are enabled.
-		CHILD_2_TIMEOUT_Start();		// Start the timer.
+		CHILD_2_TIMEOUT_EnableInt();		// Make sure interrupts are enabled.
+		CHILD_2_TIMEOUT_Start();			// Start the timer.
 		
 		// Set the current state.
 		STATE = RESPONSE_2;
@@ -292,8 +299,8 @@ void configToggle(int mode)
 		// Start listening for a response through child port 3.
 		CHILD_3_Start(CHILD_3_PARITY_NONE);
 		
-		CHILD_3_TIMEOUT_EnableInt();	// Make sure interrupts are enabled.
-		CHILD_3_TIMEOUT_Start();		// Start the timer.
+		CHILD_3_TIMEOUT_EnableInt();		// Make sure interrupts are enabled.
+		CHILD_3_TIMEOUT_Start();			// Start the timer.
 		
 		// Set the current state.
 		STATE = RESPONSE_3;
@@ -309,20 +316,22 @@ void configToggle(int mode)
 		// Start listening for a response through child port 4.
 		CHILD_4_Start(CHILD_4_PARITY_NONE);
 		
-		CHILD_4_TIMEOUT_EnableInt();	// Make sure interrupts are enabled.
-		CHILD_4_TIMEOUT_Start();		// Start the timer.
+		CHILD_4_TIMEOUT_EnableInt();		// Make sure interrupts are enabled.
+		CHILD_4_TIMEOUT_Start();			// Start the timer.
 		
 		// Set the current state.
 		STATE = RESPONSE_4;
 	}
 	else if(mode == HELLO_MODE)
 	{
-		// Load the hello wait mode.
+		// Load the hello wait mode.  This is for listening on all ports for a hello response.
 		LoadConfig_hello();
 		
 		// Clear the timeout flag.
 		TIMEOUT = 0;
 		
+		// The seemingly unnecessary brackets around each line are unfortunately needed.
+	
 		{
 		// Start listening for a response through child port 1.
 		HELLO_1_Start(HELLO_1_PARITY_NONE);
@@ -351,7 +360,7 @@ void configToggle(int mode)
 	}
 	else if(mode == INITIALIZE)
 	{
-		// Load the configuration for initialization.
+		// Load the configuration for initialization.  This config listens but does not forward.
 		LoadConfig_initial();
 		
 		// Clear the timeout flag.
@@ -368,7 +377,7 @@ void configToggle(int mode)
 	}
 	else if(mode == SERVO_COMM)
 	{
-		// Load the configuration for servo communication.
+		// Load the configuration for servo communication.  This config only transmits on P00.
 		LoadConfig_servo_transmit();
 		
 		// Clear the timeout flag.
@@ -418,15 +427,20 @@ int commandReady(void)
 	// read a transmission and store the important information from that transmission.
 	if(STATE == WAIT)
 	{	
+		// In wait mode, the only thing that progresses things forward is a master node transmission.
+		// With this being the case, we use a blocking operation to sit and wait for a byte.
 		tempByte = WAIT_RECV_cGetChar();
 		
+		// If a transmission has started for either a controller or a servo...
 		if(tempByte == START_TRANSMIT)
 		{
+			// While we keep reading start bytes, sit and spin.
 			while(tempByte == START_TRANSMIT)
 			{
 				tempByte = WAIT_RECV_cGetChar();
 			}
 			
+			// The tempByte variable contains the source ID.  If the source is good, store all bytes.
 			if(tempByte == MASTER_ID)
 			{
 				COMMAND_SOURCE = tempByte;
@@ -439,6 +453,7 @@ int commandReady(void)
 		}
 		else if(tempByte == SERVO_START)
 		{
+			// While we keep reading start bytes, sit and spin.
 			while(tempByte == SERVO_START)
 			{
 				tempByte = WAIT_RECV_cGetChar();
@@ -462,25 +477,10 @@ int commandReady(void)
 				
 			return 1;
 		}
-		
-//		if(WAIT_RECV_cReadChar() == START_TRANSMIT)
-//		{
-//			// If we definitely have a transmission starting, grab it from the rx buffer
-//			// and store it in the proper variables for actions to be taken later.
-//			if(WAIT_RECV_cGetChar() == START_TRANSMIT)
-//			{
-//				COMMAND_SOURCE = WAIT_RECV_cGetChar();
-//				COMMAND_DESTINATION = WAIT_RECV_cGetChar();
-//				COMMAND_TYPE = WAIT_RECV_cGetChar();
-//				COMMAND_PARAM = WAIT_RECV_cGetChar();
-//				
-//				return 1;
-//			}
-//		}
 	}
 	else if(STATE == HELLO_MODE)
 	{
-		// Check all of the ports for a start byte.
+		// Check all of the ports for a start byte.  Only one port will produce one.
 		if(HELLO_1_cReadChar() == START_TRANSMIT)
 		{		
 			CHILD = PORT_A;
@@ -508,33 +508,137 @@ int commandReady(void)
 	}
 	else if(STATE == RESPONSE_1)
 	{
-		// If the transmission is over, we are done.
-		if(CHILD_1_cReadChar() == END_TRANSMIT)
+		// Let the transmission through.
+		if(CHILD_1_cReadChar())
 		{
+			tempByte = CHILD_1_cGetChar();
+			
+			if(tempByte == START_TRANSMIT)
+			{
+				// Wait for the end transmit byte to go through.
+				while(CHILD_1_cReadChar() != END_TRANSMIT) { }
+			}
+			else if(tempByte == SERVO_START)
+			{
+				// While we keep reading start bytes, sit and spin.
+				while(tempByte == SERVO_START)
+				{
+					tempByte = CHILD_1_cGetChar();
+				}
+				
+				// The second parameter after the servo start is the command length.  We need to
+				// know this length so that we know how long to wait to let the whole string through.
+				tempByte = CHILD_1_cGetChar();
+				
+				// This basically waits for the rest of the command to pass through.
+				for(i = 0; i < tempByte; i++)
+				{
+					CHILD_1_cGetChar();
+				}
+			}
+			
 			return 1;
 		}
 	}
 	else if(STATE == RESPONSE_2)
 	{
-		// If the transmission is over, we are done.
-		if(CHILD_2_cReadChar() == END_TRANSMIT)
+		// Let the transmission through.
+		if(CHILD_2_cReadChar())
 		{
+			tempByte = CHILD_2_cGetChar();
+			
+			if(tempByte == START_TRANSMIT)
+			{
+				// Wait for the end transmit byte to go through.
+				while(CHILD_2_cReadChar() != END_TRANSMIT) { }
+			}
+			else if(tempByte == SERVO_START)
+			{
+				// While we keep reading start bytes, sit and spin.
+				while(tempByte == SERVO_START)
+				{
+					tempByte = CHILD_2_cGetChar();
+				}
+				
+				// The second parameter after the servo start is the command length.  We need to
+				// know this length so that we know how long to wait to let the whole string through.
+				tempByte = CHILD_2_cGetChar();
+				
+				// This basically waits for the rest of the command to pass through.
+				for(i = 0; i < tempByte; i++)
+				{
+					CHILD_2_cGetChar();
+				}
+			}
+			
 			return 1;
 		}
 	}
 	else if(STATE == RESPONSE_3)
 	{
-		// If the transmission is over, we are done.
-		if(CHILD_3_cReadChar() == END_TRANSMIT)
+		// Let the transmission through.
+		if(CHILD_3_cReadChar())
 		{
+			tempByte = CHILD_3_cGetChar();
+			
+			if(tempByte == START_TRANSMIT)
+			{
+				// Wait for the end transmit byte to go through.
+				while(CHILD_3_cReadChar() != END_TRANSMIT) { }
+			}
+			else if(tempByte == SERVO_START)
+			{
+				// While we keep reading start bytes, sit and spin.
+				while(tempByte == SERVO_START)
+				{
+					tempByte = CHILD_3_cGetChar();
+				}
+				
+				// The second parameter after the servo start is the command length.  We need to
+				// know this length so that we know how long to wait to let the whole string through.
+				tempByte = CHILD_3_cGetChar();
+				
+				// This basically waits for the rest of the command to pass through.
+				for(i = 0; i < tempByte; i++)
+				{
+					CHILD_3_cGetChar();
+				}
+			}
+			
 			return 1;
 		}
 	}
 	else if(STATE == RESPONSE_4)
 	{
-		// If the transmission is over, we are done.
-		if(CHILD_4_cReadChar() == END_TRANSMIT)
+		// Let the transmission through.
+		if(CHILD_4_cReadChar())
 		{
+			tempByte = CHILD_4_cGetChar();
+			
+			if(tempByte == START_TRANSMIT)
+			{
+				// Wait for the end transmit byte to go through.
+				while(CHILD_4_cReadChar() != END_TRANSMIT) { }
+			}
+			else if(tempByte == SERVO_START)
+			{
+				// While we keep reading start bytes, sit and spin.
+				while(tempByte == SERVO_START)
+				{
+					tempByte = CHILD_4_cGetChar();
+				}
+				
+				// The second parameter after the servo start is the command length.  We need to
+				// know this length so that we know how long to wait to let the whole string through.
+				tempByte = CHILD_4_cGetChar();
+				
+				// This basically waits for the rest of the command to pass through.
+				for(i = 0; i < tempByte; i++)
+				{
+					CHILD_4_cGetChar();
+				}
+			}
+			
 			return 1;
 		}
 	}
@@ -542,8 +646,8 @@ int commandReady(void)
 	{
 		if(INIT_RX_cReadChar() == SERVO_START)
 		{
-			// If we definitely have a transmission starting, grab it from the rx buffer
-			// and store it in the proper variables for actions to be taken later.
+			// If we definitely have a transmission starting, grab all bytes from the rx buffer
+			// and store them in the proper variables for actions to be taken later.
 			if(INIT_RX_cGetChar() == SERVO_START)
 			{
 				COMMAND_SOURCE = INIT_RX_cGetChar();
@@ -563,20 +667,19 @@ int commandReady(void)
 // and performs the appropriate action.
 void takeAction(void)
 {
-	if(COMMAND_TYPE == HELLO_BYTE)				// The master is probing for new modules.
+	if(COMMAND_TYPE == HELLO_BYTE)		// The master is probing for new modules.
 	{
-		// If this module has not been acknowledged by the master node...
 		if(!CONFIGURED)
 		{
-			// Announce this module's presence.
+			// Announce this module's presence if not configured.
 			sayHello();
 		}
 		else if(!CHILD)
 		{
-			// Listen for children.
+			// Listen for children if we have none.
 			if(childListen())
 			{
-				// If a child was heard saying hello, forward the command with the port parameter filled in.
+				// If a child was heard saying hello, forward the command with the port number added.
 				sayHello();
 			}
 		}
@@ -586,7 +689,7 @@ void takeAction(void)
 			childResponse();
 		}
 	}
-	else if(COMMAND_TYPE == PING)			// The master is trying to find a module that is configured.
+	else if(COMMAND_TYPE == PING)		// The master is trying to find a module that is configured.
 	{
 		// If this is to me, act accordingly.
 		if(COMMAND_DESTINATION == ID)
