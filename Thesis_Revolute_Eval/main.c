@@ -463,17 +463,14 @@ int commandReady(void)
 			COMMAND_SOURCE = MASTER_ID;
 			// The first parameter after the servo start is the destination.
 			COMMAND_DESTINATION = tempByte;
-			// The second parameter after the servo start is the command length.  We need to
-			// know this length so that we know how long to wait to let the whole string through.
+			// The second parameter after the servo start is the command length.
+			// We don't need it to wait for the transmission to go through since the
+			// transmission goes through the chip with a delay of approximately 100 ns
+			// (it is already in and out by the time you read this byte).
 			tempByte = WAIT_RECV_cGetChar();
-			// Now we store the command type.  If it is a read, we have special duties.
+			// Now we store the command type.  Depending on what the status return level
+			// is, we have special duties.
 			COMMAND_TYPE = WAIT_RECV_cGetChar();
-			
-			// This basically waits for the rest of the command to pass through.
-			for(i = 0; i < (tempByte - 1); i++)
-			{
-				WAIT_RECV_cGetChar();
-			}
 				
 			return 1;
 		}
@@ -515,27 +512,32 @@ int commandReady(void)
 			
 			if(tempByte == START_TRANSMIT)
 			{
-				// Wait for the end transmit byte to go through.
-				while(CHILD_1_cReadChar() != END_TRANSMIT) { }
-			}
-			else if(tempByte == SERVO_START)
-			{
-				// While we keep reading start bytes, sit and spin.
-				while(tempByte == SERVO_START)
+				// Wait for the transmission to go through.
+				while(CHILD_1_cReadChar() != END_TRANSMIT)
 				{
-					tempByte = CHILD_1_cGetChar();
-				}
-				
-				// The second parameter after the servo start is the command length.  We need to
-				// know this length so that we know how long to wait to let the whole string through.
-				tempByte = CHILD_1_cGetChar();
-				
-				// This basically waits for the rest of the command to pass through.
-				for(i = 0; i < tempByte; i++)
-				{
-					CHILD_1_cGetChar();
+					PRT2DR |= 0b00000001;
+					PRT2DR &= 0b11111110;
 				}
 			}
+//			else if(tempByte == SERVO_START)
+//			{
+//				// While we keep reading start bytes, sit and spin.
+//				while(tempByte == SERVO_START)
+//				{
+//					tempByte = CHILD_1_cGetChar();
+//				}
+//				
+//				// The second parameter after the servo start is the command length.  We need to
+//				// know this length so that we know how long to wait to let the whole string through.
+//				tempByte = CHILD_1_cGetChar();
+//				
+//				// This basically waits for the rest of the command to pass through.
+//				for(i = 0; i < tempByte; i++)
+//				{
+//					CHILD_1_cGetChar();
+//				}
+//				xmitWait();
+//			}
 			
 			return 1;
 		}
@@ -549,27 +551,32 @@ int commandReady(void)
 			
 			if(tempByte == START_TRANSMIT)
 			{
-				// Wait for the end transmit byte to go through.
-				while(CHILD_2_cReadChar() != END_TRANSMIT) { }
-			}
-			else if(tempByte == SERVO_START)
-			{
-				// While we keep reading start bytes, sit and spin.
-				while(tempByte == SERVO_START)
+				// Wait for the transmission to go through.
+				while(CHILD_2_cReadChar() != END_TRANSMIT)
 				{
-					tempByte = CHILD_2_cGetChar();
-				}
-				
-				// The second parameter after the servo start is the command length.  We need to
-				// know this length so that we know how long to wait to let the whole string through.
-				tempByte = CHILD_2_cGetChar();
-				
-				// This basically waits for the rest of the command to pass through.
-				for(i = 0; i < tempByte; i++)
-				{
-					CHILD_2_cGetChar();
+					PRT2DR |= 0b00000001;
+					PRT2DR &= 0b11111110;
 				}
 			}
+//			else if(tempByte == SERVO_START)
+//			{
+//				// While we keep reading start bytes, sit and spin.
+//				while(tempByte == SERVO_START)
+//				{
+//					tempByte = CHILD_2_cGetChar();
+//				}
+//				
+//				// The second parameter after the servo start is the command length.  We need to
+//				// know this length so that we know how long to wait to let the whole string through.
+//				tempByte = CHILD_2_cGetChar();
+//				
+//				// This basically waits for the rest of the command to pass through.
+//				for(i = 0; i < tempByte; i++)
+//				{
+//					CHILD_2_cGetChar();
+//				}
+//				xmitWait();
+//			}
 			
 			return 1;
 		}
@@ -583,27 +590,32 @@ int commandReady(void)
 			
 			if(tempByte == START_TRANSMIT)
 			{
-				// Wait for the end transmit byte to go through.
-				while(CHILD_3_cReadChar() != END_TRANSMIT) { }
-			}
-			else if(tempByte == SERVO_START)
-			{
-				// While we keep reading start bytes, sit and spin.
-				while(tempByte == SERVO_START)
+				// Wait for the transmission to go through.
+				while(CHILD_3_cReadChar() != END_TRANSMIT)
 				{
-					tempByte = CHILD_3_cGetChar();
-				}
-				
-				// The second parameter after the servo start is the command length.  We need to
-				// know this length so that we know how long to wait to let the whole string through.
-				tempByte = CHILD_3_cGetChar();
-				
-				// This basically waits for the rest of the command to pass through.
-				for(i = 0; i < tempByte; i++)
-				{
-					CHILD_3_cGetChar();
+					PRT2DR |= 0b00000001;
+					PRT2DR &= 0b11111110;
 				}
 			}
+//			else if(tempByte == SERVO_START)
+//			{
+//				// While we keep reading start bytes, sit and spin.
+//				while(tempByte == SERVO_START)
+//				{
+//					tempByte = CHILD_3_cGetChar();
+//				}
+//				
+//				// The second parameter after the servo start is the command length.  We need to
+//				// know this length so that we know how long to wait to let the whole string through.
+//				tempByte = CHILD_3_cGetChar();
+//				
+//				// This basically waits for the rest of the command to pass through.
+//				for(i = 0; i < tempByte; i++)
+//				{
+//					CHILD_3_cGetChar();
+//				}
+//				xmitWait();
+//			}
 			
 			return 1;
 		}
@@ -617,27 +629,32 @@ int commandReady(void)
 			
 			if(tempByte == START_TRANSMIT)
 			{
-				// Wait for the end transmit byte to go through.
-				while(CHILD_4_cReadChar() != END_TRANSMIT) { }
-			}
-			else if(tempByte == SERVO_START)
-			{
-				// While we keep reading start bytes, sit and spin.
-				while(tempByte == SERVO_START)
+				// Wait for the transmission to go through.
+				while(CHILD_4_cReadChar() != END_TRANSMIT)
 				{
-					tempByte = CHILD_4_cGetChar();
-				}
-				
-				// The second parameter after the servo start is the command length.  We need to
-				// know this length so that we know how long to wait to let the whole string through.
-				tempByte = CHILD_4_cGetChar();
-				
-				// This basically waits for the rest of the command to pass through.
-				for(i = 0; i < tempByte; i++)
-				{
-					CHILD_4_cGetChar();
+					PRT2DR |= 0b00000001;
+					PRT2DR &= 0b11111110;
 				}
 			}
+//			else if(tempByte == SERVO_START)
+//			{
+//				// While we keep reading start bytes, sit and spin.
+//				while(tempByte == SERVO_START)
+//				{
+//					tempByte = CHILD_4_cGetChar();
+//				}
+//				
+//				// The second parameter after the servo start is the command length.  We need to
+//				// know this length so that we know how long to wait to let the whole string through.
+//				tempByte = CHILD_4_cGetChar();
+//				
+//				// This basically waits for the rest of the command to pass through.
+//				for(i = 0; i < tempByte; i++)
+//				{
+//					CHILD_4_cGetChar();
+//				}
+//				xmitWait();
+//			}
 			
 			return 1;
 		}
