@@ -107,14 +107,6 @@
 				<SOURCE_FILE NAME="init_timeout.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="initial" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
 				<SOURCE_FILE NAME="init_timeout.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="initial" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
 				<SOURCE_FILE NAME="init_timeout.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="initial" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
-				<SOURCE_FILE NAME="psocconfigtbl.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="55771136" USER_FILE="FALSE"/>
-				<SOURCE_FILE NAME="psocdynamic.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="55771136" USER_FILE="FALSE"/>
-				<SOURCE_FILE NAME="psocdynamic.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="55771136" USER_FILE="FALSE"/>
-				<SOURCE_FILE NAME="psocdynamicint.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="55771136" USER_FILE="FALSE"/>
-				<SOURCE_FILE NAME="psocconfig.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="55771136" USER_FILE="FALSE"/>
-				<SOURCE_FILE NAME="boot.asm" TYPE="UserSourceModule" LANGUAGE="ASM" OVERLAY_NAME="" USER_FILE="FALSE"/>
-				<SOURCE_FILE NAME="globalparams.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="55771136" USER_FILE="FALSE"/>
-				<SOURCE_FILE NAME="globalparams.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="55771136" USER_FILE="FALSE"/>
 				<SOURCE_FILE NAME="servo_txint.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="servo_transmit" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
 				<SOURCE_FILE NAME="servo_tx.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="servo_transmit" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
 				<SOURCE_FILE NAME="servo_tx.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="servo_transmit" FILEMODTIME="269879424" LIBTIME="1237492" USER_FILE="FALSE"/>
@@ -124,6 +116,126 @@
 				<SOURCE_FILE NAME="servo_tx_timeout.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="servo_transmit" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
 				<SOURCE_FILE NAME="servo_tx_timeout.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="servo_transmit" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
 				<SOURCE_FILE NAME="servo_tx_timeout.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="servo_transmit" FILEMODTIME="269879400" LIBTIME="128" USER_FILE="FALSE"/>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				<SOURCE_FILE NAME="psocconfigtbl.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="55771136" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="psocdynamic.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="55771136" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="psocdynamic.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="55771136" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="psocdynamicint.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="55771136" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="psocconfig.asm" TYPE="LibrarySource" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="55771136" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="boot.asm" TYPE="UserSourceModule" LANGUAGE="ASM" OVERLAY_NAME="" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="globalparams.inc" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="55771136" USER_FILE="FALSE"/>
+				<SOURCE_FILE NAME="globalparams.h" TYPE="LibraryIncludeFile" LANGUAGE="ASM" OVERLAY_NAME="" FILEMODTIME="269322425" LIBTIME="55771136" USER_FILE="FALSE"/>
 			</SOURCE_FILE_LIST>
 			<LIB_FILE_LIST>
 				<LIB_FILE NAME="libPSoC.a" TYPE="UserLibrary">

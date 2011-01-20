@@ -85,11 +85,17 @@
 
 // This is the number of attempts we make to contact the servo per sweep of attempts before
 // writing to its EEPROM in an attempt to alter settings that keep us from communicating.
-#define		SERVO_COMM_ATTEMPTS			(10)
+#define		SERVO_COMM_ATTEMPTS			(5)
 // This is the number of times we do a loop of SERVO_COMM_ATTEMPTS.  We would like this to be at least 2.
 // This is because we do an EEPROM write after the first unsuccessful loop of SERVO_COMM_ATTEMPTS.
 // If we don't then do at least one more loop, the EEPROM write was done for no reason.
-#define		SERVO_COMM_LOOPS			(5)
+#define		SERVO_COMM_LOOPS			(2)
+// This is the number of timeout periods to wait through while the servo boots up (2 ms per period).
+#define		SERVO_BOOT_TIMEOUTS			(100)
+
+// This is the number of iterations we loop waiting for bytes to reset the timeout on a child response.
+// This will be the amount of iterations we do after the last byte has been received as well.
+#define		RESPONSE_ITERATIONS			(10)
 
 // This is the status return level, which is set to one of the possible status return values above.
 // We want the status return level to be return on read commands only so that we don't have garbage
@@ -125,6 +131,11 @@ void servoInstruction(char id, char length, char instruction, char address, char
 // This function does a simple for loop to stall and make doubly sure that the transmission finished.
 // It is meant to be used as a definite amount of wait time after the transmission complete flag is set.
 void xmitWait(void);
+// This function is called to do nothing while we wait for the servo to boot up.
+void servoBootWait(void);
+// This function is used to wait for other controllers to find their servos while not
+// driving any pins (which would keep a child from talking to its servo).
+void servoConfigWait(void);
 
 char CHILD;		// Keeps track of where the child is connected.
 char ID;		// Stores the ID that the master gives this module.
@@ -508,76 +519,54 @@ int commandReady(void)
 		// Let the transmission through.
 		if(CHILD_1_cReadChar())
 		{
-			tempByte = CHILD_1_cGetChar();
+			// Reset the index variable.
+			i = 0;
 			
-			if(tempByte == START_TRANSMIT)
+			// Wait for the transmission to go through.
+			// If no chars are read for RESPONSE_ITERATIONS iterations, move on.
+			while(i < RESPONSE_ITERATIONS)
 			{
-				// Wait for the transmission to go through.
-				while(CHILD_1_cReadChar() != END_TRANSMIT)
+				if(CHILD_1_cReadChar())
 				{
-					PRT2DR |= 0b00000001;
-					PRT2DR &= 0b11111110;
+					i = 0;
+				}
+				else
+				{
+					i++;
 				}
 			}
-//			else if(tempByte == SERVO_START)
-//			{
-//				// While we keep reading start bytes, sit and spin.
-//				while(tempByte == SERVO_START)
-//				{
-//					tempByte = CHILD_1_cGetChar();
-//				}
-//				
-//				// The second parameter after the servo start is the command length.  We need to
-//				// know this length so that we know how long to wait to let the whole string through.
-//				tempByte = CHILD_1_cGetChar();
-//				
-//				// This basically waits for the rest of the command to pass through.
-//				for(i = 0; i < tempByte; i++)
-//				{
-//					CHILD_1_cGetChar();
-//				}
-//				xmitWait();
-//			}
 			
 			return 1;
 		}
 	}
 	else if(STATE == RESPONSE_2)
 	{
-		// Let the transmission through.
-		if(CHILD_2_cReadChar())
+		if(CHILD_2_cReadChar() == END_TRANSMIT)
 		{
-			tempByte = CHILD_2_cGetChar();
-			
-			if(tempByte == START_TRANSMIT)
-			{
-				// Wait for the transmission to go through.
-				while(CHILD_2_cReadChar() != END_TRANSMIT)
-				{
-					PRT2DR |= 0b00000001;
-					PRT2DR &= 0b11111110;
-				}
-			}
-//			else if(tempByte == SERVO_START)
+		
+//		// Let the transmission through.
+//		if(CHILD_2_cReadChar())
+//		{
+//			// Reset the index variable.
+//			i = 0;
+//		
+//			// Wait for the transmission to go through.
+//			// If no chars are read for RESPONSE_ITERATIONS iterations, move on.
+//			while(i < RESPONSE_ITERATIONS)
 //			{
-//				// While we keep reading start bytes, sit and spin.
-//				while(tempByte == SERVO_START)
+//				if(CHILD_2_cReadChar())
 //				{
-//					tempByte = CHILD_2_cGetChar();
+//					i = 0;
 //				}
-//				
-//				// The second parameter after the servo start is the command length.  We need to
-//				// know this length so that we know how long to wait to let the whole string through.
-//				tempByte = CHILD_2_cGetChar();
-//				
-//				// This basically waits for the rest of the command to pass through.
-//				for(i = 0; i < tempByte; i++)
+//				else
 //				{
-//					CHILD_2_cGetChar();
+//					i++;
 //				}
-//				xmitWait();
 //			}
-			
+//			
+//			return 1;
+//		}
+
 			return 1;
 		}
 	}
@@ -586,36 +575,22 @@ int commandReady(void)
 		// Let the transmission through.
 		if(CHILD_3_cReadChar())
 		{
-			tempByte = CHILD_3_cGetChar();
+			// Reset the index variable.
+			i = 0;
 			
-			if(tempByte == START_TRANSMIT)
+			// Wait for the transmission to go through.
+			// If no chars are read for RESPONSE_ITERATIONS iterations, move on.
+			while(i < RESPONSE_ITERATIONS)
 			{
-				// Wait for the transmission to go through.
-				while(CHILD_3_cReadChar() != END_TRANSMIT)
+				if(CHILD_3_cReadChar())
 				{
-					PRT2DR |= 0b00000001;
-					PRT2DR &= 0b11111110;
+					i = 0;
+				}
+				else
+				{
+					i++;
 				}
 			}
-//			else if(tempByte == SERVO_START)
-//			{
-//				// While we keep reading start bytes, sit and spin.
-//				while(tempByte == SERVO_START)
-//				{
-//					tempByte = CHILD_3_cGetChar();
-//				}
-//				
-//				// The second parameter after the servo start is the command length.  We need to
-//				// know this length so that we know how long to wait to let the whole string through.
-//				tempByte = CHILD_3_cGetChar();
-//				
-//				// This basically waits for the rest of the command to pass through.
-//				for(i = 0; i < tempByte; i++)
-//				{
-//					CHILD_3_cGetChar();
-//				}
-//				xmitWait();
-//			}
 			
 			return 1;
 		}
@@ -625,36 +600,22 @@ int commandReady(void)
 		// Let the transmission through.
 		if(CHILD_4_cReadChar())
 		{
-			tempByte = CHILD_4_cGetChar();
+			// Reset the index variable.
+			i = 0;
 			
-			if(tempByte == START_TRANSMIT)
+			// Wait for the transmission to go through.
+			// If no chars are read for RESPONSE_ITERATIONS iterations, move on.
+			while(i < RESPONSE_ITERATIONS)
 			{
-				// Wait for the transmission to go through.
-				while(CHILD_4_cReadChar() != END_TRANSMIT)
+				if(CHILD_4_cReadChar())
 				{
-					PRT2DR |= 0b00000001;
-					PRT2DR &= 0b11111110;
+					i = 0;
+				}
+				else
+				{
+					i++;
 				}
 			}
-//			else if(tempByte == SERVO_START)
-//			{
-//				// While we keep reading start bytes, sit and spin.
-//				while(tempByte == SERVO_START)
-//				{
-//					tempByte = CHILD_4_cGetChar();
-//				}
-//				
-//				// The second parameter after the servo start is the command length.  We need to
-//				// know this length so that we know how long to wait to let the whole string through.
-//				tempByte = CHILD_4_cGetChar();
-//				
-//				// This basically waits for the rest of the command to pass through.
-//				for(i = 0; i < tempByte; i++)
-//				{
-//					CHILD_4_cGetChar();
-//				}
-//				xmitWait();
-//			}
 			
 			return 1;
 		}
@@ -663,10 +624,11 @@ int commandReady(void)
 	{
 		if(INIT_RX_cReadChar() == SERVO_START)
 		{
-			// If we definitely have a transmission starting, grab all bytes from the rx buffer
-			// and store them in the proper variables for actions to be taken later.
+			// We officially have a transmission.
 			if(INIT_RX_cGetChar() == SERVO_START)
 			{
+				// If we definitely have a transmission starting, grab all bytes from the rx buffer
+				// and store them in the proper variables for actions to be taken later.
 				COMMAND_SOURCE = INIT_RX_cGetChar();
 				COMMAND_LENGTH = INIT_RX_cGetChar();
 				COMMAND_ERROR = INIT_RX_cGetChar();
@@ -684,6 +646,8 @@ int commandReady(void)
 // and performs the appropriate action.
 void takeAction(void)
 {
+	int i = 0;							// An index variable for looping.
+	
 	if(COMMAND_TYPE == HELLO_BYTE)		// The master is probing for new modules.
 	{
 		if(!CONFIGURED)
@@ -833,6 +797,28 @@ void takeAction(void)
 		{
 			// Allow the child response through.
 			childResponse();
+		}
+		else if(COMMAND_DESTINATION <= ID)
+		{
+			// Sit and spin while we wait for the transmission to start.
+			while(WAIT_RECV_cReadChar() != SERVO_START) { }
+			
+			// Reset the index variable.
+			i = 0;
+			
+			// Wait for the transmission to go through.
+			// If no chars are read for RESPONSE_ITERATIONS iterations, move on.
+			while(i < RESPONSE_ITERATIONS)
+			{
+				if(WAIT_RECV_cReadChar())
+				{
+					i = 0;
+				}
+				else
+				{
+					i++;
+				}
+			}
 		}
 	}
 }
@@ -1075,6 +1061,8 @@ void servoFinder(void)
 	int i = 0;
 	int j = 0;
 	
+	int total_attempts = 0;
+	
 	// Integer used as a flag so that EEPROM writes aren't done more than once.
 	int flashWrite = 0;
 	
@@ -1083,9 +1071,9 @@ void servoFinder(void)
 	
 	// Start with a servo ID of 255 (out of valid range).
 	SERVO_ID = SERVO_START;
-	
-	// Sit here and wait until we get a valid servo ID.
-//	while(SERVO_ID == SERVO_START)
+
+	// We have to wait for the servo to power up and get ready for communications.
+	servoBootWait();
 
 	// This for loop will loop SERVO_COMM_LOOPS number of times and ping the servo SERVO_COMM_ATTEMPTS
 	// number of times in each loop (unless stopped short due to early success).  If this fails for the
@@ -1101,6 +1089,8 @@ void servoFinder(void)
 		{
 			// Send a ping out for any servo connected to me (will only be one).
 			servoInstruction(BROADCAST, PING_LENGTH, PING_SERVO, 0, 0);
+			
+			total_attempts++;
 			
 			// Wait for either a timeout or a valid servo ID (which will trigger a timeout).
 			while(!TIMEOUT)
@@ -1128,127 +1118,106 @@ void servoFinder(void)
 			}
 		}
 		
-		// If we didn't get a response and haven't written to the flash of the
-		// servo (first time through), send out a broadcast reset.
-		if((SERVO_ID == SERVO_START) && (!flashWrite))
-		{
-			// Set the flash write flag so that we only do this once per power cycle.
-			flashWrite = 1;
-			
-			// Send out a broadcast reset so that we know that the response time interval
-			// is large enough (default delay time for a servo is 500 microseconds).
-			servoInstruction(BROADCAST, RESET_LENGTH, RESET_SERVO, 0, 0);
-		}
+//		// If we didn't get a response and haven't written to the flash of the
+//		// servo (first time through), send out a broadcast reset.
+//		if((SERVO_ID == SERVO_START) && (!flashWrite))
+//		{
+//			// Set the flash write flag so that we only do this once per power cycle.
+//			flashWrite = 1;
+//			
+//			// Send out a broadcast reset so that we know that the response time interval
+//			// is large enough (default delay time for a servo is 500 microseconds).
+//			servoInstruction(BROADCAST, RESET_LENGTH, RESET_SERVO, 0, 0);
+//		}
 	}
-	
-	// Reset flash write flag.
-	flashWrite = 0;
-	
-	// If we have a valid servo ID, set the status return level.  If we don't, just skip this
-	// because all hope is lost.
-	if(SERVO_ID < BROADCAST)
+
+//	// Reset flash write flag.
+//	flashWrite = 0;
+//	
+//	// If we have a valid servo ID, set the status return level.  If we don't, just skip this
+//	// because all hope is lost.
+//	if(SERVO_ID < BROADCAST)
+//	{
+//		// This for loop will loop SERVO_COMM_LOOPS number of times and poll for the servo's status
+//		// return level SERVO_COMM_ATTEMPTS number of times in each loop (unless stopped short due
+//		// to early success).  If this fails for the first iteration, or we read a status return level
+//		// other than what we want, we will attempt to write the desired status return level onto the servo.
+//		for(j = 0; j < SERVO_COMM_LOOPS; j++)
+//		{
+//			// Attempt to read the status return level for the defined number of attempts.
+//			for(i = 0; i < SERVO_COMM_ATTEMPTS; i++)
+//			{
+//				// Send a request for the servo's status return level.
+//				servoInstruction(SERVO_ID, READ_LENGTH, READ_SERVO, STATUS_RET_ADDRESS, 1);
+//				
+//				// Wait for either a timeout or an indication that we want to exit the loop.
+//				while(!TIMEOUT)
+//				{
+//					// If a valid command is ready, interpret it.
+//					if(commandReady())
+//					{
+//						if(!COMMAND_ERROR)
+//						{
+//							// If the return level is equal to what is desired, store it.
+//							if(COMMAND_PARAM == STATUS_RET_LEVEL)
+//							{
+//								// Set the timeout flag to exit the loop.
+//								TIMEOUT = 1;
+//								// Store the status return level.
+//								status_return_level = COMMAND_PARAM;
+//								// Set i so that we exit the for loop.
+//								i = SERVO_COMM_ATTEMPTS;
+//								// Set the outer loop's variable so that we don't loop again.
+//								j = SERVO_COMM_LOOPS;
+//							}
+//							else
+//							{	
+//								// Set the timeout flag to exit the loop.
+//								TIMEOUT = 1;
+//							}
+//						}
+//					}
+//				}
+//			}
+//		
+//			// If we didn't get a good response and haven't written to the flash of the servo,
+//			// force a change in the status return level with an EEPROM write.
+//			if((status_return_level != STATUS_RET_LEVEL) && (!flashWrite))
+//			{	
+//				flashWrite = 1;
+//				
+//				// Try to force the return status to what we want.
+//				servoInstruction(SERVO_ID, WRITE_LENGTH, WRITE_SERVO, STATUS_RET_ADDRESS, STATUS_RET_LEVEL);
+//			}
+//		}
+//		
+//		if(status_return_level != STATUS_RET_LEVEL)
+//		{
+//			// Break on purpose to show that the status return is not correct.
+//			while(1)
+//			{
+//			
+//			}
+//		}
+//	}
+//	else
+//	{
+//		// Purposely break the module to show that we did not resolve the communication with our servo.
+//		while(1)
+//		{
+//		
+//		}
+//	}
+
+	if(total_attempts <= SERVO_COMM_ATTEMPTS)
 	{
-	
-		// Check to see if the status return level is equal to the level previously defined.
-		//while(status_return_level != STATUS_RET_LEVEL)
-	
-	
-		// This for loop will loop SERVO_COMM_LOOPS number of times and poll for the servo's status
-		// return level SERVO_COMM_ATTEMPTS number of times in each loop (unless stopped short due
-		// to early success).  If this fails for the first iteration, or we read a status return level
-		// other than what we want, we will attempt to write the desired status return level onto the servo.
-		for(j = 0; j < SERVO_COMM_LOOPS; j++)
-		{
-			// Attempt to read the status return level for the defined number of attempts.
-			for(i = 0; i < SERVO_COMM_ATTEMPTS; i++)
-			{
-				// Send a request for the servo's status return level.
-				servoInstruction(SERVO_ID, READ_LENGTH, READ_SERVO, STATUS_RET_ADDRESS, 1);
-				
-				// Wait for either a timeout or an indication that we want to exit the loop.
-				while(!TIMEOUT)
-				{
-					// If a valid command is ready, interpret it.
-					if(commandReady())
-					{
-						if(!COMMAND_ERROR)
-						{
-							// If the return level is equal to what is desired, store it.
-							if(COMMAND_PARAM == STATUS_RET_LEVEL)
-							{
-								// Set the timeout flag to exit the loop.
-								TIMEOUT = 1;
-								// Store the status return level.
-								status_return_level = COMMAND_PARAM;
-								// Set i so that we exit the for loop.
-								i = SERVO_COMM_ATTEMPTS;
-								// Set the outer loop's variable so that we don't loop again.
-								j = SERVO_COMM_LOOPS;
-							}
-							else
-							{	
-								// Set the timeout flag to exit the loop.
-								TIMEOUT = 1;
-							}
-						}
-					}
-				}
-			}
-		
-			// If we didn't get a good response and haven't written to the flash of the servo,
-			// force a change in the status return level with an EEPROM write.
-			if((status_return_level != STATUS_RET_LEVEL) && (!flashWrite))
-			{	
-				flashWrite = 1;
-				
-				// Try to force the return status to what we want.
-				servoInstruction(SERVO_ID, WRITE_LENGTH, WRITE_SERVO, STATUS_RET_ADDRESS, STATUS_RET_LEVEL);
-			}
-		}
-		
-		if(status_return_level != STATUS_RET_LEVEL)
-		{
-			// Break on purpose to show that the status return is not correct.
-			while(1)
-			{
-			
-			}
-		}
-	}
-	else
-	{
-		// Purposely break the module to show that we did not resolve the communication with our servo.
-		while(1)
-		{
-		
-		}
-	}
-
-// In between these comments is a function!
-
-	configToggle(INITIALIZE);	// Switch back to initialize mode to do this timeout routine.
-	
-	// For SERVO_COMM_ATTEMPTS*SERVO_COMM_LOOPS cycles, let the other controllers find their servos.
-	// The reason we loop this many times is to allow for a possible worst case scenario of setup
-	// time to complete.
-	for(i = 0; i < (SERVO_COMM_ATTEMPTS*SERVO_COMM_LOOPS); i++)
-	{
-		while(!TIMEOUT)
-		{
-			// Do nothing while we wait for one timeout period.
-			// This is to allow everyone to get in the right configuration before talking.
-		}
-		
-		TIMEOUT = 0;			// Reset the timeout flag.
+		PRT2DR &= 0b11111110;
 	}
 	
-	INIT_TIMEOUT_Stop();		// Stop the timer.
-	TIMEOUT = 0;				// Reset the timeout flag.
-
-// In between these comments is a function!
-
-	// Switch to wait for the master node to speak to you.
-	configToggle(WAIT);
+	while(1) { }
+	
+	// Wait for the other controllers to find their servos.
+	servoConfigWait();
 }
 
 // This function receives a destination, command length, instruction type, address, and value.
@@ -1303,6 +1272,53 @@ void xmitWait(void)
 	{
 		// Does nothing and wastes approximately 50 microseconds.
 	}
+}
+
+// This function wastes time while the servo that is attached to this controller boots up.
+// Once that happens, communications should happen quickly and reliably.
+void servoBootWait(void)
+{
+	int i = 0;					// Index integer used for looping.
+
+	configToggle(INITIALIZE);	// Switch to initialize mode to do this timeout routine.
+	
+	// Loop and wait for enough timeouts to happen before we talk to the servo.
+	for(i = 0; i < SERVO_BOOT_TIMEOUTS; i++)
+	{
+		while(!TIMEOUT) { }		// Do nothing while we wait for one timeout period.
+		TIMEOUT = 0;			// Reset the timeout flag.
+	}
+	
+	INIT_TIMEOUT_Stop();		// Stop the timeout timer.
+	TIMEOUT = 0;				// Clear the timeout flag.
+}
+
+// Sits and spins for the amount of time it takes for a worst case scenario for setup time
+// to take place.  This allows all other modules to initialize.
+void servoConfigWait(void)
+{
+	int i = 0;					// Index integer for looping purposes.
+	
+	configToggle(INITIALIZE);	// Switch to initialize mode to do this timeout routine.
+	
+	// For SERVO_COMM_ATTEMPTS*SERVO_COMM_LOOPS cycles, let the other controllers find
+	// their servos.  The reason we loop this many times is to allow for a possible worst
+	// case scenario of setup time to complete.
+	for(i = 0; i < (SERVO_COMM_ATTEMPTS*SERVO_COMM_LOOPS); i++)
+	{
+		while(!TIMEOUT)
+		{
+			// Do nothing while we wait for one timeout period.
+			// This is to allow everyone to get in the right configuration before talking.
+		}
+		
+		TIMEOUT = 0;			// Reset the timeout flag.
+	}
+	
+	INIT_TIMEOUT_Stop();		// Stop the timer.
+	TIMEOUT = 0;				// Reset the timeout flag.
+
+	configToggle(WAIT);			// Switch to wait for the master node to speak to you.
 }
 
 // This timeout ISR is for waiting before a transmission is made from this module.
