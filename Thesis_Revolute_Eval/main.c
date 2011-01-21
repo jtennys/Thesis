@@ -85,13 +85,13 @@
 
 // This is the number of attempts we make to contact the servo per sweep of attempts before
 // writing to its EEPROM in an attempt to alter settings that keep us from communicating.
-#define		SERVO_COMM_ATTEMPTS			(5)
+#define		SERVO_COMM_ATTEMPTS			(10)
 // This is the number of times we do a loop of SERVO_COMM_ATTEMPTS.  We would like this to be at least 2.
 // This is because we do an EEPROM write after the first unsuccessful loop of SERVO_COMM_ATTEMPTS.
 // If we don't then do at least one more loop, the EEPROM write was done for no reason.
 #define		SERVO_COMM_LOOPS			(2)
 // This is the number of timeout periods to wait through while the servo boots up (2 ms per period).
-#define		SERVO_BOOT_TIMEOUTS			(100)
+#define		SERVO_BOOT_TIMEOUTS			(75)
 
 // This is the number of iterations we loop waiting for bytes to reset the timeout on a child response.
 // This will be the amount of iterations we do after the last byte has been received as well.
@@ -1118,103 +1118,101 @@ void servoFinder(void)
 			}
 		}
 		
-//		// If we didn't get a response and haven't written to the flash of the
-//		// servo (first time through), send out a broadcast reset.
-//		if((SERVO_ID == SERVO_START) && (!flashWrite))
-//		{
-//			// Set the flash write flag so that we only do this once per power cycle.
-//			flashWrite = 1;
-//			
-//			// Send out a broadcast reset so that we know that the response time interval
-//			// is large enough (default delay time for a servo is 500 microseconds).
-//			servoInstruction(BROADCAST, RESET_LENGTH, RESET_SERVO, 0, 0);
-//		}
+		// If we didn't get a response and haven't written to the flash of the
+		// servo (first time through), send out a broadcast reset.
+		if((SERVO_ID == SERVO_START) && (!flashWrite))
+		{
+			// Set the flash write flag so that we only do this once per power cycle.
+			flashWrite = 1;
+			
+			// Send out a broadcast reset so that we know that the response time interval
+			// is large enough (default delay time for a servo is 500 microseconds).
+			servoInstruction(BROADCAST, RESET_LENGTH, RESET_SERVO, 0, 0);
+		}
 	}
 
-//	// Reset flash write flag.
-//	flashWrite = 0;
-//	
-//	// If we have a valid servo ID, set the status return level.  If we don't, just skip this
-//	// because all hope is lost.
-//	if(SERVO_ID < BROADCAST)
+	// Reset flash write flag.
+	flashWrite = 0;
+	
+	// If we have a valid servo ID, set the status return level.  If we don't, just skip this
+	// because all hope is lost.
+	if(SERVO_ID < BROADCAST)
+	{
+		// This for loop will loop SERVO_COMM_LOOPS number of times and poll for the servo's status
+		// return level SERVO_COMM_ATTEMPTS number of times in each loop (unless stopped short due
+		// to early success).  If this fails for the first iteration, or we read a status return level
+		// other than what we want, we will attempt to write the desired status return level onto the servo.
+		for(j = 0; j < SERVO_COMM_LOOPS; j++)
+		{
+			// Attempt to read the status return level for the defined number of attempts.
+			for(i = 0; i < SERVO_COMM_ATTEMPTS; i++)
+			{
+				// Send a request for the servo's status return level.
+				servoInstruction(SERVO_ID, READ_LENGTH, READ_SERVO, STATUS_RET_ADDRESS, 1);
+				
+				// Wait for either a timeout or an indication that we want to exit the loop.
+				while(!TIMEOUT)
+				{
+					// If a valid command is ready, interpret it.
+					if(commandReady())
+					{
+						if(!COMMAND_ERROR)
+						{
+							// If the return level is equal to what is desired, store it.
+							if(COMMAND_PARAM == STATUS_RET_LEVEL)
+							{
+								// Set the timeout flag to exit the loop.
+								TIMEOUT = 1;
+								// Store the status return level.
+								status_return_level = COMMAND_PARAM;
+								// Set i so that we exit the for loop.
+								i = SERVO_COMM_ATTEMPTS;
+								// Set the outer loop's variable so that we don't loop again.
+								j = SERVO_COMM_LOOPS;
+							}
+							else
+							{	
+								// Set the timeout flag to exit the loop.
+								TIMEOUT = 1;
+							}
+						}
+					}
+				}
+			}
+		
+			// If we didn't get a good response and haven't written to the flash of the servo,
+			// force a change in the status return level with an EEPROM write.
+			if((status_return_level != STATUS_RET_LEVEL) && (!flashWrite))
+			{	
+				flashWrite = 1;
+				
+				// Try to force the return status to what we want.
+				servoInstruction(SERVO_ID, WRITE_LENGTH, WRITE_SERVO, STATUS_RET_ADDRESS, STATUS_RET_LEVEL);
+			}
+		}
+		
+		if(status_return_level != STATUS_RET_LEVEL)
+		{
+			// Break on purpose to show that the status return is not correct.
+			while(1) { }
+		}
+	}
+	else
+	{
+		// Purposely break the module to show that we did not resolve the communication with our servo.
+		while(1) { }
+	}
+
+//	if(total_attempts <= SERVO_COMM_ATTEMPTS)
 //	{
-//		// This for loop will loop SERVO_COMM_LOOPS number of times and poll for the servo's status
-//		// return level SERVO_COMM_ATTEMPTS number of times in each loop (unless stopped short due
-//		// to early success).  If this fails for the first iteration, or we read a status return level
-//		// other than what we want, we will attempt to write the desired status return level onto the servo.
-//		for(j = 0; j < SERVO_COMM_LOOPS; j++)
-//		{
-//			// Attempt to read the status return level for the defined number of attempts.
-//			for(i = 0; i < SERVO_COMM_ATTEMPTS; i++)
-//			{
-//				// Send a request for the servo's status return level.
-//				servoInstruction(SERVO_ID, READ_LENGTH, READ_SERVO, STATUS_RET_ADDRESS, 1);
-//				
-//				// Wait for either a timeout or an indication that we want to exit the loop.
-//				while(!TIMEOUT)
-//				{
-//					// If a valid command is ready, interpret it.
-//					if(commandReady())
-//					{
-//						if(!COMMAND_ERROR)
-//						{
-//							// If the return level is equal to what is desired, store it.
-//							if(COMMAND_PARAM == STATUS_RET_LEVEL)
-//							{
-//								// Set the timeout flag to exit the loop.
-//								TIMEOUT = 1;
-//								// Store the status return level.
-//								status_return_level = COMMAND_PARAM;
-//								// Set i so that we exit the for loop.
-//								i = SERVO_COMM_ATTEMPTS;
-//								// Set the outer loop's variable so that we don't loop again.
-//								j = SERVO_COMM_LOOPS;
-//							}
-//							else
-//							{	
-//								// Set the timeout flag to exit the loop.
-//								TIMEOUT = 1;
-//							}
-//						}
-//					}
-//				}
-//			}
-//		
-//			// If we didn't get a good response and haven't written to the flash of the servo,
-//			// force a change in the status return level with an EEPROM write.
-//			if((status_return_level != STATUS_RET_LEVEL) && (!flashWrite))
-//			{	
-//				flashWrite = 1;
-//				
-//				// Try to force the return status to what we want.
-//				servoInstruction(SERVO_ID, WRITE_LENGTH, WRITE_SERVO, STATUS_RET_ADDRESS, STATUS_RET_LEVEL);
-//			}
-//		}
-//		
-//		if(status_return_level != STATUS_RET_LEVEL)
-//		{
-//			// Break on purpose to show that the status return is not correct.
-//			while(1)
-//			{
-//			
-//			}
-//		}
+//		PRT2DR &= 0b11111110;
 //	}
 //	else
 //	{
-//		// Purposely break the module to show that we did not resolve the communication with our servo.
-//		while(1)
-//		{
-//		
-//		}
+//		PRT2DR |= 0b00000001;
 //	}
-
-	if(total_attempts <= SERVO_COMM_ATTEMPTS)
-	{
-		PRT2DR &= 0b11111110;
-	}
-	
-	while(1) { }
+//	
+//	while(1) { }
 	
 	// Wait for the other controllers to find their servos.
 	servoConfigWait();
@@ -1275,7 +1273,8 @@ void xmitWait(void)
 }
 
 // This function wastes time while the servo that is attached to this controller boots up.
-// Once that happens, communications should happen quickly and reliably.
+// Once that happens, communications should happen quickly and reliably.  The estimated boot
+// time in testing was approximately 120 ms.
 void servoBootWait(void)
 {
 	int i = 0;					// Index integer used for looping.
@@ -1306,12 +1305,7 @@ void servoConfigWait(void)
 	// case scenario of setup time to complete.
 	for(i = 0; i < (SERVO_COMM_ATTEMPTS*SERVO_COMM_LOOPS); i++)
 	{
-		while(!TIMEOUT)
-		{
-			// Do nothing while we wait for one timeout period.
-			// This is to allow everyone to get in the right configuration before talking.
-		}
-		
+		while(!TIMEOUT) { }		// Do nothing while we wait for one timeout period.
 		TIMEOUT = 0;			// Reset the timeout flag.
 	}
 	
