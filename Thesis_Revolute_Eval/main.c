@@ -522,12 +522,9 @@ int commandReady(void)
 	}
 	else if(STATE == RESPONSE_1)
 	{
-		if(CHILD_1_cReadChar())
+		if(tempByte = CHILD_1_cReadChar())
 		{
-			// Store the next byte for comparisons.
-			tempByte = CHILD_1_cGetChar();
-			
-			if(tempByte == SERVO_START)	// We have a servo response coming.
+			if(tempByte == SERVO_START)				// We have a servo response coming.
 			{
 				// Burn through the rest of the start bytes and the servo length.
 				while(CHILD_1_cGetChar() == SERVO_START) { }
@@ -554,12 +551,9 @@ int commandReady(void)
 	}
 	else if(STATE == RESPONSE_2)
 	{
-		if(CHILD_2_cReadChar())
+		if(tempByte = CHILD_2_cReadChar())
 		{
-			// Store the next byte for comparisons.
-			tempByte = CHILD_2_cGetChar();
-			
-			if(tempByte == SERVO_START)	// We have a servo response coming.
+			if(tempByte == SERVO_START)				// We have a servo response coming.
 			{
 				// Burn through the rest of the start bytes and the servo length.
 				while(CHILD_2_cGetChar() == SERVO_START) { }
@@ -586,12 +580,9 @@ int commandReady(void)
 	}
 	else if(STATE == RESPONSE_3)
 	{
-		if(CHILD_3_cReadChar())
+		if(tempByte = CHILD_3_cReadChar())
 		{
-			// Store the next byte for comparisons.
-			tempByte = CHILD_3_cGetChar();
-			
-			if(tempByte == SERVO_START)	// We have a servo response coming.
+			if(tempByte == SERVO_START)				// We have a servo response coming.
 			{
 				// Burn through the rest of the start bytes and the servo length.
 				while(CHILD_3_cGetChar() == SERVO_START) { }
@@ -618,12 +609,9 @@ int commandReady(void)
 	}
 	else if(STATE == RESPONSE_4)
 	{
-		if(CHILD_4_cReadChar())
+		if(tempByte = CHILD_4_cReadChar())
 		{
-			// Store the next byte for comparisons.
-			tempByte = CHILD_4_cGetChar();
-			
-			if(tempByte == SERVO_START)	// We have a servo response coming.
+			if(tempByte == SERVO_START)				// We have a servo response coming.
 			{
 				// Burn through the rest of the start bytes and the servo length.
 				while(CHILD_4_cGetChar() == SERVO_START) { }
