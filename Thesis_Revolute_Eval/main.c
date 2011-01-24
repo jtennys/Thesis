@@ -21,9 +21,9 @@
 #pragma interrupt_handler CHILD_2_TIMEOUT_ISR
 #pragma interrupt_handler CHILD_3_TIMEOUT_ISR
 #pragma interrupt_handler CHILD_4_TIMEOUT_ISR
-#pragma interrupt_handler HELLO_TIMEOUT_ISR
+#pragma interrupt_handler HELLO_TIMEOUT_1_ISR
+#pragma interrupt_handler HELLO_TIMEOUT_2_ISR
 #pragma interrupt_handler INIT_TIMEOUT_ISR
-#pragma interrupt_handler SERVO_TX_TIMEOUT_ISR
 
 // These defines are used as parameters of the configToggle function.  Passing one of
 // these identifiers to configToggle will put the chip in that device configuration.
@@ -33,15 +33,21 @@
 #define 	RESPONSE_2					(4)
 #define 	RESPONSE_3					(5)
 #define 	RESPONSE_4					(6)
-#define		HELLO_MODE					(7)
-#define		INITIALIZE					(8)
-#define		SERVO_COMM					(9)
+#define		HELLO_MODE_1				(7)
+#define		HELLO_MODE_2				(8)
+#define		INITIALIZE					(9)
+#define		SERVO_COMM					(10)
 
 // These defines are used as comparisons to find what port the next module connected to.
 #define		PORT_A						('A')
 #define		PORT_B						('B')
 #define		PORT_C						('C')
 #define		PORT_D						('D')
+
+// These are used to select which port group we are looking at.  We have to do this in order
+// to listen on 4 different ports on a device that physically only allows 2 at a time.
+#define		PORTS_0_1					(0)
+#define		PORTS_2_3					(1)
 
 // These defines are used as transmission indicators for transmissions between PSoC controllers.
 #define		START_TRANSMIT				(252)	// Indicates the beginning of a transmission.
@@ -143,6 +149,7 @@ char ID;		// Stores the ID that the master gives this module.
 int CONFIGURED;	// Keeps track of whether or not this module has been configured by the master.
 int TIMEOUT;	// This flag is set if a timeout occurs.
 int STATE;		// This stores the ID of the currently-loaded configuration.
+int PORT_GROUP;	// This is the port group we are looking at for hello responses.
 
 char COMMAND_SOURCE;		// Stores who the current command is from.
 char COMMAND_DESTINATION;	// Stores who the current command is for.
@@ -161,6 +168,7 @@ void main()
 	TIMEOUT = 0;			// Set the timeout flag low to start.
 	COMMAND_PARAM = 0;		// There is no parameter yet.
 	STATE = 0;				// There is no state yet.
+	PORT_GROUP = PORTS_0_1;	// Start with this port group and alternate between all port groups.
 	ID = DEFAULT_ID;		// Set the ID of this controller to the default to start with.
 
 	M8C_EnableGInt;			// Turn on global interrupts for the transmission timeout timer.
@@ -333,10 +341,10 @@ void configToggle(int mode)
 		// Set the current state.
 		STATE = RESPONSE_4;
 	}
-	else if(mode == HELLO_MODE)
+	else if(mode == HELLO_MODE_1)
 	{
 		// Load the hello wait mode.  This is for listening on all ports for a hello response.
-		LoadConfig_hello();
+		LoadConfig_hello1();
 		
 		// Clear the timeout flag.
 		TIMEOUT = 0;
@@ -353,6 +361,22 @@ void configToggle(int mode)
 		HELLO_2_Start(HELLO_2_PARITY_NONE);
 		}
 		
+		HELLO_TIMEOUT_1_EnableInt();	// Make sure interrupts are enabled.
+		HELLO_TIMEOUT_1_Start();		// Start the timer.
+		
+		// Set the current state.
+		STATE = HELLO_MODE_1;
+	}
+	else if(mode == HELLO_MODE_2)
+	{
+		// Load the hello wait mode.  This is for listening on all ports for a hello response.
+		LoadConfig_hello2();
+		
+		// Clear the timeout flag.
+		TIMEOUT = 0;
+		
+		// The seemingly unnecessary brackets around each line are unfortunately needed.
+		
 		{
 		// Start listening for a response through child port 3.
 		HELLO_3_Start(HELLO_3_PARITY_NONE);
@@ -363,11 +387,11 @@ void configToggle(int mode)
 		HELLO_4_Start(HELLO_4_PARITY_NONE);
 		}
 		
-		HELLO_TIMEOUT_EnableInt();	// Make sure interrupts are enabled.
-		HELLO_TIMEOUT_Start();		// Start the timer.
+		HELLO_TIMEOUT_2_EnableInt();	// Make sure interrupts are enabled.
+		HELLO_TIMEOUT_2_Start();		// Start the timer.
 		
 		// Set the current state.
-		STATE = HELLO_MODE;
+		STATE = HELLO_MODE_2;
 	}
 	else if(mode == INITIALIZE)
 	{
@@ -396,18 +420,6 @@ void configToggle(int mode)
 		
 		// Start the transmitter.
 		SERVO_TX_Start(SERVO_TX_PARITY_NONE);
-		
-//		SERVO_TX_TIMEOUT_EnableInt();	// Make sure interrupts are enabled.
-//		SERVO_TX_TIMEOUT_Start();		// Start the timer.
-//		
-//		while(!TIMEOUT)
-//		{
-//			// Do nothing while we wait for one timeout period.
-//			// This is to allow everyone to get in the right configuration before talking.
-//		}
-//		
-//		SERVO_TX_TIMEOUT_Stop();		// Stop the timer.
-//		TIMEOUT = 0;					// Reset the timeout flag.
 	
 		// Set the current state.
 		STATE = SERVO_COMM;
@@ -492,7 +504,7 @@ int commandReady(void)
 			return 1;
 		}
 	}
-	else if(STATE == HELLO_MODE)
+	else if(STATE == HELLO_MODE_1)
 	{
 		// Check all of the ports for a start byte.  Only one port will produce one.
 		if(HELLO_1_cReadChar() == START_TRANSMIT)
@@ -507,7 +519,11 @@ int commandReady(void)
 			
 			return 1;
 		}
-		else if(HELLO_3_cReadChar() == START_TRANSMIT)
+	}
+	else if(STATE == HELLO_MODE_2)
+	{
+		// Check all of the ports for a start byte.  Only one port will produce one.
+		if(HELLO_3_cReadChar() == START_TRANSMIT)
 		{
 			CHILD = PORT_C;
 			
@@ -906,7 +922,8 @@ void pingResponse(void)
 void unloadAllConfigs(void)
 {
 	UnloadConfig_waiting();
-	UnloadConfig_hello();
+	UnloadConfig_hello1();
+	UnloadConfig_hello2();
 	UnloadConfig_my_response();
 	UnloadConfig_response1();
 	UnloadConfig_response2();
@@ -924,9 +941,13 @@ void unloadConfig(int config_num)
 	{
 		UnloadConfig_waiting();
 	}
-	else if(config_num == HELLO_MODE)
+	else if(config_num == HELLO_MODE_1)
 	{
-		UnloadConfig_hello();
+		UnloadConfig_hello1();
+	}
+	else if(config_num == HELLO_MODE_2)
+	{
+		UnloadConfig_hello2();
 	}
 	else if(config_num == MY_RESPONSE)
 	{
@@ -992,7 +1013,14 @@ void assignedID(void)
 // This function listens for children and registers the port that they talk to.
 int childListen(void)
 {
-	configToggle(HELLO_MODE);	// Switch to listen for hellos on every port.
+	if(PORT_GROUP == PORTS_0_1)
+	{
+		configToggle(HELLO_MODE_1);	// Switch to listen for hellos on ports 0 and 1.
+	}
+	else if(PORT_GROUP == PORTS_2_3)
+	{
+		configToggle(HELLO_MODE_2);	// Switch to listen for hellos on ports 2 and 3.
+	}
 	
 	// Wait to either hear a child or time out.
 	while(!TIMEOUT)
@@ -1003,12 +1031,22 @@ int childListen(void)
 		}
 	}
 	
-	HELLO_TIMEOUT_Stop();		// Stop the timer.
-	TIMEOUT = 0;				// Clear the timeout flag.
+	if(PORT_GROUP == PORTS_0_1)
+	{
+		HELLO_TIMEOUT_1_Stop();		// Stop the timer.
+		PORT_GROUP = PORTS_2_3;		// Switch to the other group for the next pass.
+	}
+	else if(PORT_GROUP == PORTS_2_3)
+	{
+		HELLO_TIMEOUT_2_Stop();		// Stop the timer.
+		PORT_GROUP = PORTS_0_1;		// Switch to the other group for the next pass.
+	}
 	
-	configToggle(WAIT);			// Switch back to wait for a master response.
+	TIMEOUT = 0;					// Clear the timeout flag.
 	
-	return 0;					// Return the result of our listening session.
+	configToggle(WAIT);				// Switch back to wait for a master response.
+	
+	return 0;						// Return the result of our listening session.
 }
 
 // This function waits for a child response.
@@ -1341,11 +1379,17 @@ void TX_01234_TIMEOUT_ISR(void)
 	M8C_ClearIntFlag(INT_CLR0,TX_01234_TIMEOUT_INT_MASK);
 }
 
-// This is the ISR for a hello response timeout.
-void HELLO_TIMEOUT_ISR(void)
+// These are the ISRs for the hello response timeouts.
+void HELLO_TIMEOUT_1_ISR(void)
 {
 	TIMEOUT = 1;	// Set the timeout flag.
-	M8C_ClearIntFlag(INT_CLR0,HELLO_TIMEOUT_INT_MASK);
+	M8C_ClearIntFlag(INT_CLR0,HELLO_TIMEOUT_1_INT_MASK);
+}
+
+void HELLO_TIMEOUT_2_ISR(void)
+{
+	TIMEOUT = 1;	// Set the timeout flag.
+	M8C_ClearIntFlag(INT_CLR0,HELLO_TIMEOUT_2_INT_MASK);
 }
 
 // These remaining ISRs are for all the child timeout scenarios.
@@ -1377,10 +1421,4 @@ void INIT_TIMEOUT_ISR(void)
 {
 	TIMEOUT = 1;	// Set the timeout flag.
 	M8C_ClearIntFlag(INT_CLR0,INIT_TIMEOUT_INT_MASK);
-}
-
-void SERVO_TX_TIMEOUT_ISR(void)
-{
-	TIMEOUT = 1;	// Set the timeout flag.
-	M8C_ClearIntFlag(INT_CLR0,SERVO_TX_TIMEOUT_INT_MASK);
 }
