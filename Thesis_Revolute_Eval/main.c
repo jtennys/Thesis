@@ -482,6 +482,12 @@ int commandReady(void)
 			// Now we store the command type.  Depending on what the status return level
 			// is, we have special duties.
 			COMMAND_TYPE = WAIT_RECV_cGetChar();
+			
+			// This basically waits for the rest of the command to pass through.
+			for(i = 0; i < (tempByte - 1); i++)
+			{
+				WAIT_RECV_cGetChar();
+			}
 				
 			return 1;
 		}
