@@ -522,108 +522,130 @@ int commandReady(void)
 	}
 	else if(STATE == RESPONSE_1)
 	{
-		// Let the transmission through.
 		if(CHILD_1_cReadChar())
 		{
-			// Reset the index variable.
-			i = 0;
+			// Store the next byte for comparisons.
+			tempByte = CHILD_1_cGetChar();
 			
-			// Wait for the transmission to go through.
-			// If no chars are read for RESPONSE_ITERATIONS iterations, move on.
-			while(i < RESPONSE_ITERATIONS)
+			if(tempByte == SERVO_START)	// We have a servo response coming.
 			{
-				if(CHILD_1_cReadChar())
+				// Burn through the rest of the start bytes and the servo length.
+				while(CHILD_1_cGetChar() == SERVO_START) { }
+				
+				// We store the length, since it is the next byte from the servo.
+				tempByte = CHILD_1_cGetChar();
+				
+				// This basically waits for the rest of the command to pass through.
+				for(i = 0; i < tempByte; i++)
 				{
-					i = 0;
+					CHILD_1_cGetChar();
 				}
-				else
-				{
-					i++;
-				}
+				
+				return 1;
 			}
-			
-			return 1;
+			else if (tempByte == START_TRANSMIT)	// We have a controller response coming.
+			{
+				// We simply wait for the end transmit indicator.
+				while(CHILD_1_cGetChar() != END_TRANSMIT) { }
+				
+				return 1;
+			}
 		}
 	}
 	else if(STATE == RESPONSE_2)
 	{
-		if(CHILD_2_cReadChar() == END_TRANSMIT)
+		if(CHILD_2_cReadChar())
 		{
-		
-//		// Let the transmission through.
-//		if(CHILD_2_cReadChar())
-//		{
-//			// Reset the index variable.
-//			i = 0;
-//		
-//			// Wait for the transmission to go through.
-//			// If no chars are read for RESPONSE_ITERATIONS iterations, move on.
-//			while(i < RESPONSE_ITERATIONS)
-//			{
-//				if(CHILD_2_cReadChar())
-//				{
-//					i = 0;
-//				}
-//				else
-//				{
-//					i++;
-//				}
-//			}
-//			
-//			return 1;
-//		}
-
-			return 1;
+			// Store the next byte for comparisons.
+			tempByte = CHILD_2_cGetChar();
+			
+			if(tempByte == SERVO_START)	// We have a servo response coming.
+			{
+				// Burn through the rest of the start bytes and the servo length.
+				while(CHILD_2_cGetChar() == SERVO_START) { }
+				
+				// We store the length, since it is the next byte from the servo.
+				tempByte = CHILD_2_cGetChar();
+				
+				// This basically waits for the rest of the command to pass through.
+				for(i = 0; i < tempByte; i++)
+				{
+					CHILD_2_cGetChar();
+				}
+				
+				return 1;
+			}
+			else if (tempByte == START_TRANSMIT)	// We have a controller response coming.
+			{
+				// We simply wait for the end transmit indicator.
+				while(CHILD_2_cGetChar() != END_TRANSMIT) { }
+				
+				return 1;
+			}
 		}
 	}
 	else if(STATE == RESPONSE_3)
 	{
-		// Let the transmission through.
 		if(CHILD_3_cReadChar())
 		{
-			// Reset the index variable.
-			i = 0;
+			// Store the next byte for comparisons.
+			tempByte = CHILD_3_cGetChar();
 			
-			// Wait for the transmission to go through.
-			// If no chars are read for RESPONSE_ITERATIONS iterations, move on.
-			while(i < RESPONSE_ITERATIONS)
+			if(tempByte == SERVO_START)	// We have a servo response coming.
 			{
-				if(CHILD_3_cReadChar())
+				// Burn through the rest of the start bytes and the servo length.
+				while(CHILD_3_cGetChar() == SERVO_START) { }
+				
+				// We store the length, since it is the next byte from the servo.
+				tempByte = CHILD_3_cGetChar();
+				
+				// This basically waits for the rest of the command to pass through.
+				for(i = 0; i < tempByte; i++)
 				{
-					i = 0;
+					CHILD_3_cGetChar();
 				}
-				else
-				{
-					i++;
-				}
+				
+				return 1;
 			}
-			
-			return 1;
+			else if (tempByte == START_TRANSMIT)	// We have a controller response coming.
+			{
+				// We simply wait for the end transmit indicator.
+				while(CHILD_3_cGetChar() != END_TRANSMIT) { }
+				
+				return 1;
+			}
 		}
 	}
 	else if(STATE == RESPONSE_4)
 	{
-		// Let the transmission through.
 		if(CHILD_4_cReadChar())
 		{
-			// Reset the index variable.
-			i = 0;
+			// Store the next byte for comparisons.
+			tempByte = CHILD_4_cGetChar();
 			
-			// Wait for the transmission to go through.
-			// If no chars are read for RESPONSE_ITERATIONS iterations, move on.
-			while(i < RESPONSE_ITERATIONS)
+			if(tempByte == SERVO_START)	// We have a servo response coming.
 			{
-				if(CHILD_4_cReadChar())
+				// Burn through the rest of the start bytes and the servo length.
+				while(CHILD_4_cGetChar() == SERVO_START) { }
+				
+				// We store the length, since it is the next byte from the servo.
+				tempByte = CHILD_4_cGetChar();
+				
+				// This basically waits for the rest of the command to pass through.
+				for(i = 0; i < tempByte; i++)
 				{
-					i = 0;
+					CHILD_4_cGetChar();
 				}
-				else
-				{
-					i++;
-				}
+				
+				return 1;
 			}
-			
-			return 1;
+			else if (tempByte == START_TRANSMIT)	// We have a controller response coming.
+			{
+				// We simply wait for the end transmit indicator.
+				while(CHILD_4_cGetChar() != END_TRANSMIT) { }
+				
+				return 1;
+			}
 		}
 	}
 	else if(STATE == INITIALIZE)
